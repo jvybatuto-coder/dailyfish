@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - DailyFish</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        function previewImage(e){
+            const [file] = e.files;
+            if (!file) return;
+            const img = document.getElementById('preview');
+            img.src = URL.createObjectURL(file);
+        }
+        function confirmSubmit(){
+            return confirm('Save changes to this product?');
+        }
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">DailyFish</a>
+            <nav class="nav">
+                <a href="{% url 'admin_orders' %}">Orders</a>
+                <a href="{% url 'admin_products' %}">Products</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <section class="main-content">
+            <a href="{% url 'admin_products' %}" class="btn btn-secondary">Back to Products</a>
+            <h1 style="margin:1rem 0;">Edit {{ fish.name }}</h1>
+            <form method="post" enctype="multipart/form-data" onsubmit="return confirmSubmit()">
+                {% csrf_token %}
+                <div style="display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start">
+                    <div class="main-content" style="padding:1rem; margin:0;">
+                        <img id="preview" src="{{ fish.display_image }}" alt="Preview" style="width:220px;height:220px;object-fit:cover;border-radius:12px;border:1px solid #e9ecef">
+                        <label class="form-label">Upload Image</label>
+                        <input type="file" name="image" accept="image/*" onchange="previewImage(this)">
+                        <label class="form-label">Or Image URL</label>
+                        <input class="form-input" type="url" name="image_url" placeholder="https://..." value="{{ fish.image_url }}">
+                    </div>
+                    <div class="main-content" style="padding:1rem; margin:0;">
+                        <label class="form-label">Name</label>
+                        <input class="form-input" type="text" name="name" value="{{ fish.name }}" required>
+                        <label class="form-label">Price per kg</label>
+                        <input class="form-input" type="number" step="0.01" min="0" name="price_per_kg" value="{{ fish.price_per_kg }}" required>
+                        <label class="form-label">Available stock (kg)</label>
+                        <input class="form-input" type="number" step="0.01" min="0" name="stock_kg" value="{{ fish.stock_kg }}" required>
+                        <label class="form-label">Description</label>
+                        <textarea class="form-input" name="description" rows="6">{{ fish.description }}</textarea>
+                        <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap;">
+                            <button class="btn btn-primary" type="submit">Save Changes</button>
+                            <a class="btn btn-secondary" href="{% url 'admin_products' %}">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </div>
+</body>
+</html>
+
+

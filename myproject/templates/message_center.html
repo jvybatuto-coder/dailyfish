@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            /* Light red base with soft radiant highlights */
+            background:
+                radial-gradient(circle at top left, rgba(226, 59, 59, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(226, 59, 59, 0.15), transparent 55%),
+                #fff5f5;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .header .header-content { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; }
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e23b3b;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            padding-left: 25px;
+        }
+
+        .logo img {
+            position: absolute;
+            left: -190px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            height: auto;
+        }
+        .header-title { color: #e23b3b; margin: 0; font-size: 1.8rem; }
+        .nav a:hover {
+            background: white !important;
+            color: #c82333 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(226, 59, 59, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="notification-container" class="notification-container"></div>
+    
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'fish_list' %}" class="logo">
+                <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo">
+                <span class="logo-text">DailyFish</span>
+            </a>
+            <nav class="nav" style="display: flex; align-items: center; gap: 0.75rem;">
+                <a href="{% url 'fish_list' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Shop Fish</a>
+                <a href="{% url 'cart' %}" style="display:flex; align-items:center; gap:.4rem; padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
+                    <span>Cart</span>
+                    <span style="font-size: 1.1rem;">🛒</span>
+                </a>
+                <a href="{% url 'order_history' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">My Orders</a>
+                <a href="{% url 'message_center' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Messages</a>
+                <a href="{% url 'logout' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="main-content" style="margin-top: 100px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem;">
+                <h2 style="margin:0; color: #e23b3b;">Your Messages</h2>
+                <a href="{% url 'send_message' %}" class="btn btn-primary">+ New Message</a>
+            </div>
+
+            <div class="main-content" style="padding:1rem; margin:0 0 1rem 0;">
+                <div style="display:flex; gap:2rem; align-items:center;">
+                    <div>
+                        <p style="font-size:1.5rem; font-weight:700; margin:0; color:#000;">{{ conversations|length }}</p>
+                        <p style="margin:0; color: var(--muted);">Total Conversations</p>
+                    </div>
+                    <div>
+                        <p style="font-size:1.5rem; font-weight:700; margin:0; color:#000;">{{ unread_count }}</p>
+                        <p style="margin:0; color: var(--muted);">Unread Messages</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content" style="padding:0;">
+                {% if conversations %}
+                    {% for message in conversations %}
+                        <div class="message-item {% if not message.is_read and message.recipient == request.user %}unread{% endif %}" data-url="{% url 'view_message' message.id %}" style="padding:1rem 1.25rem; border-bottom:1px solid #e9ecef; cursor:pointer;">
+                            <div class="message-header-row" style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+                                <h3 class="message-subject" style="margin:0; font-size:1.1rem;">{{ message.subject }}</h3>
+                                <div class="message-meta" style="display:flex; gap:0.75rem; color: var(--muted); font-size:0.9rem;">
+                                    <span class="message-type" style="background: var(--old-mauve); color: var(--white); padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; font-weight:600;">{{ message.get_message_type_display }}</span>
+                                    <span>{{ message.created_at|date:"M d, Y H:i" }}</span>
+                                </div>
+                            </div>
+                            <p class="message-preview" style="color: var(--muted); margin:0.5rem 0 0 0; line-height:1.5;">{{ message.content|truncatewords:20 }}</p>
+                            <div class="message-participants" style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem; flex-wrap:wrap;">
+                                <span class="participant" style="background: var(--light-gray); color: var(--muted); padding:0.2rem 0.6rem; border-radius:999px; font-size:0.8rem;">From: {{ message.sender.username }}</span>
+                                <span class="participant" style="background: var(--light-gray); color: var(--muted); padding:0.2rem 0.6rem; border-radius:999px; font-size:0.8rem;">To: {{ message.recipient.username }}</span>
+                                {% if not message.is_read and message.recipient == request.user %}
+                                    <span class="participant" style="background: var(--danger); color: #000; padding:0.2rem 0.6rem; border-radius:999px; font-size:0.8rem;">New</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No messages yet</h3>
+                        <p>Start a conversation by sending a message to a seller or buyer.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <!-- JSON messages script (safe to read with .textContent) -->
+    <script id="django-messages-data" type="application/json">
+        {% if messages %}
+        [
+            {% for message in messages %}
+                {"message": "{{ message|escapejs }}", "tags": "{{ message.tags }}"}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+        {% else %}
+        []
+        {% endif %}
+    </script>
+
+    <script>
+        (function () {
+            function showNotification(message, type) {
+                var container = document.getElementById('notification-container');
+                if (!container) return;
+                var notification = document.createElement('div');
+                notification.className = 'notification ' + (type || 'success');
+                notification.textContent = message;
+                container.appendChild(notification);
+                setTimeout(function () { notification.remove(); }, 4000);
+            }
+
+            // Read Django messages from the JSON script tag
+            var messagesEl = document.getElementById('django-messages-data');
+            var djangoMessages = [];
+            if (messagesEl && messagesEl.textContent) {
+                try {
+                    djangoMessages = JSON.parse(messagesEl.textContent);
+                } catch (e) {
+                    // parsing failed — leave djangoMessages as []
+                    console.warn('Failed to parse django messages JSON', e);
+                }
+            }
+
+            for (var i = 0; i < djangoMessages.length; i++) {
+                var msg = djangoMessages[i];
+                showNotification(msg.message, msg.tags);
+            }
+
+            // Make message items clickable using data-url attribute
+            var items = document.querySelectorAll('.message-item');
+            Array.prototype.forEach.call(items, function (el) {
+                var url = el.getAttribute('data-url');
+                if (url) {
+                    el.addEventListener('click', function () {
+                        window.location.href = url;
+                    });
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

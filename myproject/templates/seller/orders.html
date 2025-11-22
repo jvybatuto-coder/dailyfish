@@ -1,0 +1,707 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyFish - Fresh Seafood Marketplace</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            /* Light red base with soft radiant highlights */
+            background:
+                radial-gradient(circle at top left, rgba(226, 59, 59, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(226, 59, 59, 0.15), transparent 55%),
+                #fff5f5;
+            margin: 0; 
+            min-height: 100vh;
+            font-size: 0.975rem;
+            color: #111827;
+        }
+        .seller-navbar { position: fixed; top: 0; left: 0; right: 0; background: #ffffff; box-shadow: 0 1px 4px rgba(15,23,42,0.08); z-index: 50; }
+        .seller-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .seller-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #e63946; text-decoration: none; }
+        .seller-logo i { font-size: 1.5rem; }
+        .seller-nav-links { display: flex; align-items: center; gap: 1rem; }
+        .seller-nav-links a { text-decoration: none; color: #0f172a; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 999px; transition: background 0.15s, color 0.15s; font-size: 0.9rem; }
+        .seller-nav-links a:hover, .seller-nav-links a.active { background: #e63946; color: #ffffff; }
+        .seller-main { width: 100%; max-width: 100%; margin: 5rem 0 2rem; padding: 0 2rem 2rem; }
+        .seller-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+        .seller-title { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: #111827;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.02em;
+            line-height: 1.3;
+        }
+        .seller-subtitle { 
+            color: #6b7280; 
+            font-size: 0.9375rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .seller-name-chip { font-size: 0.8rem; color: #6b7280; }
+        .seller-name-chip span { font-weight: 600; color: #111827; }
+        .filter-row { 
+            margin-bottom: 1.5rem; 
+        }
+        .filter-form {
+            max-width: 600px;
+        }
+        .filter-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+        .filter-select {
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+        select { padding:0.35rem 0.6rem; border-radius:999px; border:1px solid #d1d5db; font-size:0.8rem; }
+        .table-wrapper { 
+            background: #ffffff; 
+            border-radius: 0.75rem; 
+            padding: 1.5rem; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+            max-width: 100%; 
+            overflow-x: auto; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.95rem;
+        }
+        td { 
+            padding: 1rem; 
+            text-align: left; 
+            vertical-align: middle;
+            font-size: 0.975rem;
+            color: #374151;
+            border-bottom: 1px solid #f1f5f9;
+            line-height: 1.5;
+            transition: background 0.18s ease;
+        }
+        th { 
+            font-weight: 600; 
+            font-size: 0.75rem;
+            color: #6b7280; 
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: #f9fafb;
+            text-align: left;
+            white-space: nowrap;
+        }
+        
+        /* Align specific columns */
+        th:nth-child(1), td:nth-child(1) {  /* Order # */
+            padding-left: 1.5rem;
+            width: 100px;
+        }
+        
+        th:nth-child(2), td:nth-child(2) {  /* Buyer */
+            min-width: 120px;
+        }
+        
+        th:nth-child(3), td:nth-child(3) {  /* Items */
+            min-width: 250px;
+        }
+        
+        th:nth-child(4), td:nth-child(4) {  /* Total Amount */
+            text-align: right;
+            padding-right: 1.5rem;
+            white-space: nowrap;
+        }
+        
+        th:nth-child(5), td:nth-child(5) {  /* Status */
+            text-align: center;
+            width: 120px;
+        }
+        
+        th:nth-child(6), td:nth-child(6) {  /* Placed At */
+            text-align: right;
+            white-space: nowrap;
+            color: #6b7280;
+            font-size: 0.875rem;
+            width: 160px;
+        }
+        
+        th:nth-child(7), td:nth-child(7) {  /* Update Status */
+            text-align: center;
+            width: 180px;
+        }
+        tr:nth-child(even) td { background: #f9fafb; }
+        tbody tr:hover td {
+            background: #eff6ff;
+        }
+        .badge { 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 0.35rem 0.8rem; 
+            border-radius: 999px; 
+            font-size: 0.8rem;
+            font-weight: 500;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+        .badge-pending { background:#fef3c7; color:#92400e; }
+        .badge-active { background:#dbeafe; color:#1d4ed8; }
+        .badge-success { background:#dcfce7; color:#166534; }
+        .badge-cancel { background:#fee2e2; color:#b91c1c; }
+        .status-form { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0.4rem;
+            min-width: 140px;
+        }
+        .status-select, .filter-select { 
+            font-size: 0.85rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            border: 2px solid #e23b3b;
+            background: transparent;
+            color: #333;
+            transition: all 0.25s ease;
+            width: 100%;
+        }
+        .status-select:focus, .filter-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(226, 59, 59, 0.1);
+        }
+        /* Style for dropdown options */
+        .status-select, .filter-select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e23b3b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.6em top 50%;
+            background-size: 0.8em auto;
+            cursor: pointer;
+        }
+        .status-select:hover, .filter-select:hover {
+            background-color: #fff5f5;
+        }
+        .status-select option, .filter-select option {
+            padding: 6px 10px;
+            background: white;
+            color: #333;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .status-select option:hover, 
+        .filter-select option:hover,
+        .status-select option:focus, 
+        .filter-select option:focus,
+        .status-select option:checked,
+        .filter-select option:checked {
+            background-color: #e23b3b !important;
+            color: white !important;
+        }
+        .status-submit { 
+            font-size: 0.9rem;
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 999px;
+            border: none;
+            color: #ffffff;
+            background: #e23b3b;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            line-height: 1.3;
+            height: 38px;
+            min-width: 96px;
+            box-shadow: 0 4px 10px rgba(226, 59, 59, 0.25);
+        }
+        .status-submit:hover { 
+            background: #c81e1e;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(226, 59, 59, 0.35);
+        }
+        .items-list { list-style:none; padding:0; margin:0; }
+        .items-list { 
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .items-list li { 
+            margin-bottom: 0.4rem;
+            font-size: 0.9375rem;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+        /* Notification Styles - Matching Buyer's Design */
+        .notification-container {
+            position: fixed;
+            top: 1rem;
+            left:50;
+            transform: translateX(-50%);
+            z-index: 10000;
+            width: auto;
+            max-width: 96%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .notification {
+            padding: 1rem 1.5rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            display: inline-block;
+            min-width: 260px;
+            max-width: 100%;
+            animation: slideInDown 0.3s ease-out;
+        }
+
+        .notification.success { 
+            background: #d4edda;
+            color: #0f5132;
+        }
+        .notification.error { 
+            background: #f8d7da;
+            color: #842029;
+        }
+        .notification.warning { 
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        .fade-out {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+        }
+        @media (max-width: 768px) {
+            .seller-header { flex-direction: column; align-items: flex-start; }
+            .seller-nav-inner { padding-inline: 1rem; }
+            .seller-main { padding: 0 1rem 2rem; }
+            .table-wrapper { padding: 1rem; }
+        }
+
+        /* Shared seller sidebar layout (matches dashboard) */
+        .seller-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .seller-sidebar {
+            width: 240px;
+            background: #ffffff;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .seller-logo-container {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        
+        /* Seller Dashboard Logo */
+        .seller-dashboard-logo {
+            max-width: 200px;
+            height: auto;
+            display: block;
+            margin: 0 auto 0.5rem auto;
+        }
+        
+        .seller-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #0f172a;
+            padding-top: 0rem;
+        }
+        
+        .seller-logo span {
+            font-size: 1.5rem;
+            font-weight: 680;
+            color: #dc3545;
+            margin-top: -1.3em;
+        }
+
+        .seller-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #e63946;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .seller-logo i {
+            font-size: 1.5rem;
+            color: #e63946;
+        }
+
+        .seller-name-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #374151;
+            padding: 0.5rem 0.75rem;
+            background: #ffffff;
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .seller-name-chip i {
+            font-size: 1.1rem;
+            color: #e23b3b;
+        }
+
+        .seller-name-chip span {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .seller-sidebar-nav {
+            padding: 1rem 0.5rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            color: #e23b3b;
+            background: white;
+            border: 2px solid #e23b3b;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0.5rem 0.75rem;
+        }
+
+        .nav-link:hover {
+            background: white !important;
+            color: #c82333 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(226,59,59,0.3);
+        }
+
+        .nav-link.active {
+            background: #fef2f2;
+            color: #e63946;
+            font-weight: 500;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .seller-main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 1.5rem 2rem;
+            max-width: calc(100% - 240px);
+        }
+
+        .seller-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 0 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .seller-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .seller-sidebar.active {
+                transform: translateX(0);
+            }
+
+            .seller-main-content {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 1rem;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 60;
+                background: #e63946;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+
+            .seller-logo span {
+                display: none;
+            }
+
+            .seller-sidebar.active + .seller-main-content .mobile-menu-toggle {
+                left: 200px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .mobile-menu-toggle {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .seller-header { 
+                flex-direction: column; 
+                align-items: flex-start; 
+                margin-top: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% if messages %}
+    <div class="notification-container" aria-live="polite" aria-atomic="true">
+        {% for message in messages %}
+            <div class="notification {{ message.tags|default:'' }}" role="status">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    <script>
+        // Auto-hide notifications after 3 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifications = document.querySelectorAll('.notification');
+            notifications.forEach(notification => {
+                setTimeout(() => {
+                    notification.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            });
+        });
+    </script>
+    {% endif %}
+
+    <div class="seller-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="seller-sidebar">
+            <div class="seller-logo-container">
+                <a href="{% url 'seller_dashboard' %}" class="seller-logo">
+                    <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo" class="seller-dashboard-logo">
+                    <span>DailyFish</span>
+                </a>
+                <div class="seller-name-chip">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ seller_name }}</span>
+                </div>
+            </div>
+            <nav class="seller-sidebar-nav">
+                <a href="{% url 'seller_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'seller_dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'seller_products' %}" class="nav-link {% if 'products' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-fish"></i>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'seller_orders' %}" class="nav-link {% if 'orders' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'message_center' %}" class="nav-link {% if 'message' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'seller_profile' %}" class="nav-link {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="seller-main-content">
+        <main class="seller-main">
+        <header class="seller-header">
+            <div>
+                <h1 class="seller-title">Buyer Orders</h1>
+                <p class="seller-subtitle">Review and manage orders that include your fish. Updating status here is visible to buyers in their order history.</p>
+            </div>
+        </header>
+
+        <section class="table-wrapper">
+            <div class="filter-row">
+                <form method="get" class="filter-form">
+                    <div class="filter-group">
+                        <label for="status" class="filter-label">Filter by status:</label>
+                        <select id="status" name="status" class="filter-select">
+                            <option value="">All Orders</option>
+                            {% for value,label in status_choices %}
+                                <option value="{{ value }}" {% if request.GET.status == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="status-submit">
+                            <i class="fas fa-filter"></i>
+                            <span>Apply</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {% if orders %}
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Buyer</th>
+                            <th>Items (Your Fish)</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Placed At</th>
+                            <th>Update Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user.username }}</td>
+                            <td>
+                                <div class="order-items" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    {% for item in order.items.all %}
+                                        {% if item.fish.seller_id == request.user.id %}
+                                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                                                <span style="font-weight: 500;">{{ item.fish.name }}</span>
+                                                <span style="color: #4b5563; font-size: 0.875rem;">{{ item.quantity_kg }} kg × ₱{{ item.price_per_kg|floatformat:2 }}</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>₱{{ order.total_amount }}</td>
+                            <td>
+                                {% if order.status == 'pending' %}
+                                    <span class="badge badge-pending">Pending</span>
+                                {% elif order.status == 'cancelled' %}
+                                    <span class="badge badge-cancel">Cancelled</span>
+                                {% elif order.status == 'completed' %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% else %}
+                                    <span class="badge badge-active">{{ order.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <form method="post" class="status-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                                    <select name="status" class="status-select" style="margin-bottom: 0.5rem;">
+                                        {% for value,label in status_choices %}
+                                            <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="status-submit">Save</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p style="font-size:0.9375rem; color:#6b7280; line-height:1.6; margin:0; max-width: 600px;">No orders yet containing your fish. When buyers order your products, you can manage them here.</p>
+            {% endif %}
+        </section>
+        </main>
+        </main>
+    </div>
+
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <script>
+        // Toggle mobile menu
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.querySelector('.seller-sidebar');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024 && 
+                !sidebar.contains(e.target) && 
+                e.target !== mobileMenuToggle && 
+                !mobileMenuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

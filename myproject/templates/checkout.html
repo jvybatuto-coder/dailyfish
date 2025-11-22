@@ -1,0 +1,211 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - DailyFish</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            /* Light red base with soft radiant highlights */
+            background:
+                radial-gradient(circle at top left, rgba(226, 59, 59, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(226, 59, 59, 0.15), transparent 55%),
+                #fff5f5;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        
+        /* Remove focus outlines */
+        #confirmModal:focus,
+        #confirmModal *:focus,
+        #confirmModal *:active,
+        #confirmModal *:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .header-content { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; }
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e23b3b;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            padding-left: 25px;
+        }
+
+        .logo img {
+            position: absolute;
+            left: -190px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            height: auto;
+        }
+        .header-title { color: #e23b3b; margin: 0; font-size: 1.8rem; }
+        .nav { display: flex; align-items: center; gap: 0.75rem; }
+        .nav a { background: #fff; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; padding: 0.5rem 0.9rem; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .nav a:hover { background: #fff !important; color: #c82333 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(226,59,59,0.3); }
+        main.container { margin-top: 100px; }
+        .page-title { color: var(--old-mauve); margin-bottom: 2rem; }
+        .card { background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+        .section-title { color: var(--old-mauve); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600; }
+        .summary-card { background: var(--light-gray); padding: 2rem; border-radius: 12px; }
+        .summary-inner { background: #fff; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 1rem; }
+        .summary-label { color: #555; }
+        .summary-total { font-weight: 700; font-size: 1.3rem; color: var(--old-mauve); }
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        label { display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:0.25rem; }
+        input[type="text"], input[type="tel"], textarea, select {
+            width: 100%; padding: 0.6rem 0.7rem; border-radius: 8px;
+            border: 2px solid #e9ecef; font-size: 0.95rem;
+        }
+        textarea { resize: vertical; min-height: 80px; }
+        input:focus, textarea:focus, select:focus {
+            outline: none; border-color: #e23b3b; box-shadow: 0 0 0 1px rgba(226,59,59,0.25);
+        }
+        .btn-primary {
+            width: 100%; text-align: center; background:#e23b3b; color:white;
+            border:2px solid #e23b3b; border-radius:8px; font-weight:600;
+            padding:0.7rem 1.5rem; transition:all .3s ease; font-size: 1.05rem;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background:#c82333; border-color:#c82333; transform:translateY(-2px);
+            box-shadow: 0 4px 12px rgba(226,59,59,0.3);
+        }
+        .btn-secondary-link {
+            width: 100%; text-align: center; background:white; color:#e23b3b;
+            border:2px solid #e23b3b; border-radius:8px; font-weight:600;
+            padding:0.7rem 1.5rem; transition:all .3s ease; font-size: 1.05rem;
+            display:inline-block; text-decoration:none;
+        }
+        .btn-secondary-link:hover {
+            background:#f8f9fa; transform:translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'fish_list' %}" class="logo">
+                <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo">
+                <span class="logo-text">DailyFish</span>
+            </a>
+            <nav class="nav">
+                <a href="{% url 'fish_list' %}">Shop Fish</a>
+                <a href="{% url 'cart' %}" style="display:flex; align-items:center; gap:.4rem;">
+                    <span>Cart</span>
+                    <span style="font-size:1.1rem;">🛒</span>
+                    <span class="cart-count" id="cart-count" style="margin-left:.25rem;">0</span>
+                </a>
+                <a href="{% url 'order_history' %}">My Orders</a>
+                <a href="{% url 'message_center' %}" style="display:flex; align-items:center; gap:.4rem;">
+                    <span>Messages</span>
+                    <span style="font-size:1.1rem;"></span>
+                </a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="main-content" style="max-width: 900px; margin: 0 auto;">
+            <h1 class="page-title">Checkout</h1>
+
+            {% if cart_items %}
+            <!-- Order items overview -->
+            <section class="card">
+                <h2 class="section-title">Your Items</h2>
+                {% for item in cart_items %}
+                    <div style="display:flex; align-items:center; gap:1rem; padding:0.75rem 0; border-bottom:1px solid #e9ecef;">
+                        <!-- Product / fish image -->
+                        {% if item.fish.image %}
+                            <img src="{{ item.fish.image.url }}" alt="{{ item.fish.name }}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 8px;">
+                        {% else %}
+                            <div style="width: 64px; height: 64px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: #666; font-size: 0.8rem;">
+                                No Image
+                            </div>
+                        {% endif %}
+
+                        <!-- Fish type / name and pricing -->
+                        <div style="flex:1;">
+                            <div style="font-weight:600; color:var(--old-mauve);">{{ item.fish.name }}</div>
+                            <div style="font-size:0.9rem; color:#666;">₱{{ item.fish.price_per_kg|floatformat:2 }}/kg × {{ item.quantity_kg }} kg</div>
+                        </div>
+
+                        <!-- Line total -->
+                        <div style="font-weight:600; color:var(--old-mauve);">₱{{ item.total_price|floatformat:2 }}</div>
+                    </div>
+                {% endfor %}
+            </section>
+
+            <!-- Summary + checkout form -->
+            <section class="summary-card">
+                <div class="summary-inner">
+                    <h2 class="section-title" style="text-align:center;">Order Summary</h2>
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal:</span>
+                        <span>₱{{ cart.get_total_amount|floatformat:2|default:'0.00' }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Shipping Fee:</span>
+                        <span>₱50.00</span>
+                    </div>
+                    <hr style="margin: 1.25rem 0; border: none; border-top: 1px solid #e0e0e0;">
+                    <div class="summary-row">
+                        <span class="summary-total">Total:</span>
+                        <span class="summary-total">₱{{ cart.get_total_with_shipping|floatformat:2|default:'0.00' }}</span>
+                    </div>
+                </div>
+
+                <form method="post" style="margin-top:1.5rem;">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div>
+                            <label for="contact_number">Contact Number</label>
+                            <input type="tel" id="contact_number" name="contact_number" placeholder="e.g. 09171234567" required pattern="^[0-9]{10,15}$">
+                        </div>
+                        <div>
+                            <label for="payment_method">Payment Method</label>
+                            <select id="payment_method" name="payment_method">
+                                <option value="cod">Cash on Delivery (COD)</option>
+                                <option value="gcash">GCash</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="notes">Notes (Optional)</label>
+                            <textarea id="notes" name="notes" placeholder="Any instructions for your order..."></textarea>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
+                        <button type="submit" class="btn-primary">Place Order</button>
+                        <a href="{% url 'cart' %}" class="btn-secondary-link">Back to Cart</a>
+                    </div>
+                </form>
+            </section>
+            {% else %}
+                <div class="card" style="text-align:center;">
+                    <h2 class="section-title" style="margin-bottom:0.5rem;">Your cart is empty</h2>
+                    <p style="color:#666; margin-bottom:1rem;">Add some fresh fish before checking out.</p>
+                    <a href="{% url 'fish_list' %}" class="btn-secondary-link" style="display:inline-block; max-width:260px;">Shop Now</a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>
+

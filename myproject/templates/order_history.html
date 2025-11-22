@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fish Catalog - DailyFish</title>
+
+    <!-- CSRF token for AJAX (Django) -->
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        /* basic CSS variables and fallbacks so the template works even if external CSS missing */
+        :root{
+            --white: #ffffff;
+            --muted: #6b7280;
+            --old-mauve: #6f42c1;
+            --dark-gray: #374151;
+            --e23b3b: #e23b3b;
+            --c82333: #c82333;
+            --bg: #f8f9fa;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        body {
+            /* Light red base with soft radiant highlights */
+            background:
+                radial-gradient(circle at top left, rgba(226, 59, 59, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(226, 59, 59, 0.15), transparent 55%),
+                #fff5f5;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            color: #111827;
+        }
+
+        .header { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .header .header-content { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; }
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e23b3b;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            padding-left: 25px;
+        }
+
+        .logo img {
+            position: absolute;
+            left: -190px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            height: auto;
+        }
+        .header-title { color: #e23b3b; margin: 0; font-size: 1.8rem; }
+        .nav { display: flex; gap: 0.75rem; align-items: center; }
+        .nav a { background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; padding: 0.5rem 0.9rem; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .nav a:hover { background: white !important; color: #c82333 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(226,59,59,0.3); }
+
+        main.container { max-width: 1100px; margin: 100px auto 60px; padding: 0 1rem; }
+
+        .main-content h1 {
+            color: var(--old-mauve);
+            margin-bottom: 1rem;
+        }
+
+        /* simple grid */
+        .search-bar { margin-bottom: 1rem; }
+        .search-input, .filter-select {
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #e6e6e6;
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            display:inline-block;
+            padding: 0.6rem 0.9rem;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+            border: none;
+        }
+
+        .btn-primary { background: linear-gradient(135deg,var(--e23b3b),var(--c82333)); color: var(--white); }
+        .btn-secondary { background: var(--white); color: var(--e23b3b); border: 2px solid var(--e23b3b); }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .product-card{
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .product-image{
+            width:100%;
+            height:160px;
+            object-fit:cover;
+            display:block;
+            background:#f3f4f6;
+        }
+
+        .product-info {
+            padding: 0.8rem;
+            display:flex;
+            flex-direction:column;
+            gap:0.5rem;
+        }
+
+        .product-name { font-weight:700; margin:0; }
+        .product-price { color: var(--e23b3b); font-weight:700; }
+        .product-buttons { display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap; }
+
+        .product-stock.out { color:#b91c1c; font-weight:700; }
+        .product-stock.low { color:#b45309; font-weight:600; }
+        .product-stock.available { color:#065f46; font-weight:600; }
+
+        /* modal styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,);
+            z-index: 2000;
+            padding: 1rem;
+        }
+        .modal-overlay.show { display:flex; }
+        .modal {
+            background: var(--white);
+            width: 100%;
+            max-width: 720px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            display:flex;
+            flex-direction:column;
+        }
+        .modal-header, .modal-footer { padding: 1rem; border-bottom: 1px solid #eef2f7; display:flex; align-items:center; justify-content:space-between; }
+        .modal-body { padding: 1rem; max-height: 60vh; overflow:auto; }
+        .modal-title { margin: 0; font-size: 1.15rem; font-weight:700; color: var(--dark-gray); }
+        .modal-close { background:transparent; border:none; font-size:1.4rem; cursor:pointer; color:#000; }
+
+        .order-item { display:flex; gap:1rem; align-items:center; }
+        .order-item-image { width:100px; height:100px; object-fit:cover; border-radius:8px; background:#f3f4f6; }
+        .order-item-name { margin:0; font-weight:700; }
+        .quantity-controls { display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; }
+        .quantity-btn { padding:0.25rem 0.5rem; border-radius:6px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; }
+        .quantity-input { width:80px; padding:0.4rem; border-radius:6px; border:1px solid #e5e7eb; text-align:center; }
+
+        .total-price { margin-top: 1rem; font-weight:700; color: var(--e23b3b); }
+        .address-display { display:flex; gap:0.75rem; align-items:center; justify-content:space-between; }
+        .address-edit-btn { padding:0.45rem 0.6rem; border-radius:8px; background: #f3f4f6; border:1px solid #e5e7eb; cursor:pointer; }
+
+        .delivery-warning { background:#fff3cd; padding:0.75rem; border-radius:8px; margin-top:1rem; color:#663c00; border-left:4px solid var(--e23b3b); }
+
+        /* notification */
+        .notification-container { position: fixed; top: 1rem; right: 1rem; z-index: 3000; display:flex; flex-direction:column; gap:0.5rem; }
+        .notification { padding:0.75rem 1rem; border-radius:8px; color:#111; box-shadow:var(--card-shadow); font-weight:700; background:#d4edda; }
+        .notification.success { background:#d4edda; }
+        .notification.error { background:#f8d7da; }
+
+        @media (max-width:640px){
+            .product-grid { grid-template-columns: repeat(2,1fr); }
+            .header .header-content { padding:0 0.5rem; justify-content:flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'fish_list' %}" class="logo">
+                <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo">
+                <span class="logo-text">DailyFish</span>
+            </a>
+            <nav class="nav" aria-label="Main navigation">
+                <a href="{% url 'fish_list' %}">Shop Fish</a>
+                <a href="{% url 'cart' %}" style="display:flex; align-items:center; gap:.4rem;">
+                    <span>Cart</span>
+                    <span style="font-size:1.1rem;">🛒</span>
+                    <span class="cart-count" id="cart-count" style="margin-left:.25rem;">0</span>
+                </a>
+                <a href="{% url 'order_history' %}">My Orders</a>
+                <a href="{% url 'message_center' %}">Messages</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <div class="main-content">
+            <h1 style="color: #e23b3b; margin-bottom: 1rem;">My Orders</h1>
+
+            {% if orders and orders|length > 0 %}
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    {% for o in orders %}
+                        <div class="product-card" style="padding:1rem; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                                <div style="font-weight:700;">Order #{{ o.id }}</div>
+                                <div style="color: var(--muted);">{{ o.created_at|date:"M d, Y H:i" }}</div>
+                                <div>
+                                    <span class="status-badge status-{{ o.status }}">{{ o.get_status_display }}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:1rem;">
+                                <div style="font-weight:700; color: var(--e23b3b);">₱{{ o.total_amount }}</div>
+                                <a href="{% url 'order_detail' o.id %}" class="btn btn-secondary">View</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if orders.has_other_pages %}
+                    <div style="display:flex; justify-content:center; margin-top:1.5rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            {% if orders.has_previous %}
+                                <a href="?page={{ orders.previous_page_number }}" class="btn btn-secondary">Previous</a>
+                            {% endif %}
+                            {% for num in orders.paginator.page_range %}
+                                {% if orders.number == num %}
+                                    <span class="btn btn-primary" aria-current="page">{{ num }}</span>
+                                {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                                    <a href="?page={{ num }}" class="btn btn-secondary">{{ num }}</a>
+                                {% endif %}
+                            {% endfor %}
+                            {% if orders.has_next %}
+                                <a href="?page={{ orders.next_page_number }}" class="btn btn-secondary">Next</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <h3>No orders yet</h3>
+                    <p>Looks like you haven’t placed any orders.</p>
+                    <a href="{% url 'fish_list' %}" class="btn btn-primary">Shop Fish</a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal" role="document">
+            <div class="modal-header">
+                <h2 class="modal-title">Order Now</h2>
+                <button class="modal-close" onclick="closeOrderModal()" aria-label="Close modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div id="order-item" class="order-item">
+                    <img id="order-item-image" src="" alt="" class="order-item-image" />
+                    <div class="order-item-details">
+                        <h3 id="order-item-name" class="order-item-name"></h3>
+                        <p id="order-item-price" class="order-item-price"></p>
+
+                        <div class="quantity-controls" aria-label="Quantity controls">
+                            <button type="button" class="quantity-btn" onclick="decreaseQuantity()" aria-label="Decrease">-</button>
+                            <input type="number" id="quantity-input" class="quantity-input" value="1" min="0.1" step="0.1" onchange="updateTotal()" aria-label="Quantity (kg)">
+                            <button type="button" class="quantity-btn" onclick="increaseQuantity()" aria-label="Increase">+</button>
+                            <span style="margin-left:0.5rem; color:var(--muted)">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="total-price" class="total-price">Total: ₱0.00</div>
+
+                <div class="payment-methods" style="margin-top:1rem;">
+                    <h4 style="margin-bottom:0.5rem; color:var(--dark-gray)">Payment Method</h4>
+                    <div class="payment-method" onclick="selectPaymentMethod('gcash', this)" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input type="radio" name="payment" value="gcash" id="gcash">
+                        <label for="gcash">GCash</label>
+                    </div>
+                    <div class="payment-method" onclick="selectPaymentMethod('cod', this)" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; margin-top:0.5rem;">
+                        <input type="radio" name="payment" value="cod" id="cod">
+                        <label for="cod">Cash on Delivery (COD)</label>
+                    </div>
+                </div>
+
+                <div class="address-section" style="margin-top:1rem;">
+                    <h4 style="margin-bottom:0.5rem; color:var(--dark-gray)">Delivery Address</h4>
+
+                    <div id="address-display" class="address-display" aria-live="polite">
+                        <p id="current-address" style="margin:0">No address set. Please add your delivery address.</p>
+                        <button class="address-edit-btn" onclick="toggleAddressForm()">Edit Address</button>
+                    </div>
+
+                    <div id="address-form" class="address-form" style="display:none; margin-top:0.75rem;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:0.5rem;">
+                            <input type="text" id="municipality" placeholder="Municipality" class="form-input" />
+                            <input type="text" id="barangay" placeholder="Barangay" class="form-input" />
+                        </div>
+                        <textarea id="address-details" placeholder="Street address, house number, landmarks..." class="form-input" style="height:80px; resize:vertical;"></textarea>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+                            <button type="button" class="btn btn-primary" onclick="saveAddress()">Save Address</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleAddressForm()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="delivery-warning" class="delivery-warning" style="display:none;">
+                    <strong>⚠️ Delivery Not Available</strong><br>
+                    Sorry, delivery is not available in your area. You may message the seller for more information.
+                </div>
+            </div>
+
+            <div class="modal-footer" style="gap:0.5rem; justify-content:flex-end;">
+                <button id="place-order-btn" class="btn btn-primary" onclick="placeOrder()" disabled>Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for order modal
+        let currentOrderItem = null;
+        let currentQuantity = 1;
+        let currentPrice = 0;
+        let selectedPaymentMethod = null;
+        let maxStock = 0;
+
+        // Deliverable areas - CONFIGURABLE BY SELLER
+        const DELIVERABLE_AREAS = ['Naval', 'Almeria', 'Biliran'];
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notification-container');
+            if (!container) return;
+            const notification = document.createElement('div');
+            notification.className = 'notification ' + (type === 'error' ? 'error' : 'success');
+            notification.textContent = message;
+            container.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification.parentNode) notification.parentNode.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+
+        // Order modal functions
+        function openOrderModal(id, name, price, image, stock) {
+            currentOrderItem = { id, name, price, image };
+            currentPrice = parseFloat(price) || 0;
+            maxStock = parseFloat(stock) || 0;
+            currentQuantity = 1;
+
+            // Update modal content
+            const imgEl = document.getElementById('order-item-image');
+            if (imgEl) { imgEl.src = image || ''; imgEl.alt = name || ''; }
+            const nameEl = document.getElementById('order-item-name');
+            if (nameEl) nameEl.textContent = name || '';
+            const priceEl = document.getElementById('order-item-price');
+            if (priceEl) priceEl.textContent = `₱${Number(currentPrice).toFixed(2)}/kg`;
+
+            const qtyInput = document.getElementById('quantity-input');
+            if (qtyInput) {
+                qtyInput.value = 1;
+                qtyInput.max = maxStock;
+            }
+
+            // Reset payment radios
+            document.querySelectorAll('input[name="payment"]').forEach(r => r.checked = false);
+            selectedPaymentMethod = null;
+            updatePlaceOrderButton();
+
+            // Load saved address
+            loadSavedAddress();
+
+            // Show modal
+            const overlay = document.getElementById('order-modal');
+            if (overlay) {
+                overlay.classList.add('show');
+                overlay.setAttribute('aria-hidden', 'false');
+            }
+
+            updateTotal();
+        }
+
+        function closeOrderModal() {
+            const overlay = document.getElementById('order-modal');
+            if (overlay) {
+                overlay.classList.remove('show');
+                overlay.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        function increaseQuantity() {
+            const input = document.getElementById('quantity-input');
+            if (!input) return;
+            const current = parseFloat(input.value) || 0;
+            const step = parseFloat(input.step) || 0.1;
+            const next = Math.min((current + step), maxStock || Infinity);
+            input.value = next.toFixed(1);
+            updateTotal();
+        }
+
+        function decreaseQuantity() {
+            const input = document.getElementById('quantity-input');
+            if (!input) return;
+            const current = parseFloat(input.value) || 0;
+            const step = parseFloat(input.step) || 0.1;
+            const next = Math.max((current - step), parseFloat(input.min) || 0.1);
+            input.value = next.toFixed(1);
+            updateTotal();
+        }
+
+        function updateTotal() {
+            const qtyEl = document.getElementById('quantity-input');
+            const quantity = qtyEl ? (parseFloat(qtyEl.value) || 0) : 0;
+            const total = quantity * (parseFloat(currentPrice) || 0);
+            const totalEl = document.getElementById('total-price');
+            if (totalEl) totalEl.textContent = `Total: ₱${total.toFixed(2)}`;
+            currentQuantity = quantity;
+            updatePlaceOrderButton();
+        }
+
+        function selectPaymentMethod(method, el) {
+            selectedPaymentMethod = method;
+            // set radio checked
+            const radio = document.querySelector(`input[name="payment"][value="${method}"]`);
+            if (radio) radio.checked = true;
+
+            // visual selected class
+            document.querySelectorAll('.payment-method').forEach(node => node.classList.remove('selected'));
+            if (el && el.classList) el.classList.add('selected');
+            updatePlaceOrderButton();
+        }
+
+        function updatePlaceOrderButton() {
+            const addressTextEl = document.getElementById('current-address');
+            const hasAddress = addressTextEl && addressTextEl.textContent && !addressTextEl.textContent.includes('No address set');
+            const button = document.getElementById('place-order-btn');
+            if (!button) return;
+
+            if (selectedPaymentMethod && hasAddress && currentQuantity > 0) {
+                button.disabled = false;
+            } else {
+                button.disabled = true;
+            }
+        }
+
+        // Address management
+        function loadSavedAddress() {
+            const saved = localStorage.getItem('userAddress');
+            const curr = document.getElementById('current-address');
+            if (saved && curr) {
+                try {
+                    const address = JSON.parse(saved);
+                    const addressText = `${address.municipality || ''}${address.barangay ? ', ' + address.barangay : ''}${address.details ? ', ' + address.details : ''}`;
+                    curr.textContent = addressText;
+                    checkDeliveryAvailability(address.municipality || '');
+                } catch (e) {
+                    curr.textContent = 'No address set. Please add your delivery address.';
+                    document.getElementById('delivery-warning').style.display = 'none';
+                }
+            } else if (curr) {
+                curr.textContent = 'No address set. Please add your delivery address.';
+                document.getElementById('delivery-warning').style.display = 'none';
+            }
+            updatePlaceOrderButton();
+        }
+
+        function toggleAddressForm() {
+            const form = document.getElementById('address-form');
+            if (!form) return;
+            const showing = form.style.display === 'block' || form.classList.contains('show');
+            if (showing) {
+                form.style.display = 'none';
+                form.classList.remove('show');
+            } else {
+                form.style.display = 'block';
+                form.classList.add('show');
+
+                // populate with saved address if exists
+                const saved = localStorage.getItem('userAddress');
+                if (saved) {
+                    try {
+                        const a = JSON.parse(saved);
+                        document.getElementById('municipality').value = a.municipality || '';
+                        document.getElementById('barangay').value = a.barangay || '';
+                        document.getElementById('address-details').value = a.details || '';
+                    } catch (e) { /* ignore */ }
+                }
+            }
+        }
+
+        function saveAddress() {
+            const municipality = (document.getElementById('municipality') || {}).value || '';
+            const barangay = (document.getElementById('barangay') || {}).value || '';
+            const details = (document.getElementById('address-details') || {}).value || '';
+
+            if (!municipality.trim() || !barangay.trim()) {
+                showNotification('Please fill in municipality and barangay', 'error');
+                return;
+            }
+
+            const address = { municipality: municipality.trim(), barangay: barangay.trim(), details: details.trim() };
+            localStorage.setItem('userAddress', JSON.stringify(address));
+            const addressText = `${address.municipality}, ${address.barangay}${address.details ? ', ' + address.details : ''}`;
+            const curr = document.getElementById('current-address');
+            if (curr) curr.textContent = addressText;
+            checkDeliveryAvailability(address.municipality);
+            toggleAddressForm();
+            showNotification('Address saved successfully!', 'success');
+        }
+
+        function checkDeliveryAvailability(municipality) {
+            const warning = document.getElementById('delivery-warning');
+            const placeOrderBtn = document.getElementById('place-order-btn');
+
+            if (!municipality) {
+                if (warning) warning.style.display = 'none';
+                if (placeOrderBtn) updatePlaceOrderButton();
+                return;
+            }
+
+            const isDeliverable = DELIVERABLE_AREAS.some(area => municipality.toLowerCase().includes(area.toLowerCase()));
+            if (!isDeliverable) {
+                if (warning) warning.style.display = 'block';
+                if (placeOrderBtn) placeOrderBtn.disabled = true;
+            } else {
+                if (warning) warning.style.display = 'none';
+                if (placeOrderBtn) updatePlaceOrderButton();
+            }
+        }
+
+        function placeOrder() {
+            if (!currentOrderItem || !selectedPaymentMethod || currentQuantity <= 0) {
+                showNotification('Please complete all order details', 'error');
+                return;
+            }
+
+            const saved = localStorage.getItem('userAddress');
+            if (!saved) {
+                showNotification('Please set your delivery address', 'error');
+                return;
+            }
+
+            const address = JSON.parse(saved || '{}');
+            const isDeliverable = DELIVERABLE_AREAS.some(area => (address.municipality || '').toLowerCase().includes(area.toLowerCase()));
+            if (!isDeliverable) {
+                showNotification('Delivery is not available in your area', 'error');
+                return;
+            }
+
+            // create order object (client-side)
+            const order = {
+                id: Date.now(),
+                fish: currentOrderItem,
+                quantity: currentQuantity,
+                totalPrice: +(currentQuantity * currentPrice).toFixed(2),
+                paymentMethod: selectedPaymentMethod,
+                address: address,
+                timestamp: new Date().toISOString()
+            };
+
+            const orders = JSON.parse(localStorage.getItem('userOrders') || '[]');
+            orders.push(order);
+            localStorage.setItem('userOrders', JSON.stringify(orders));
+
+            showNotification('Your order has been successfully placed. Please wait while we prepare your order.', 'success');
+            closeOrderModal();
+            console.log('Order placed (client-side):', order);
+        }
+
+        // Cart functions (existing)
+        function addToCart(fishId) {
+            const quantity = prompt('Enter quantity in kg:', '1');
+            const q = Number(quantity);
+            if (!q || q <= 0) {
+                showNotification('Please enter a valid quantity', 'error');
+                return;
+            }
+
+            const csrf = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : null;
+
+            fetch(`/cart/add/${fishId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrf || ''
+                },
+                body: `quantity=${encodeURIComponent(q)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.success) {
+                    showNotification(data.message || 'Added to cart', 'success');
+                    updateCartCount();
+                } else {
+                    showNotification((data && data.message) || 'Error adding to cart', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error adding to cart', 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        function updateCartCount() {
+            // Best-effort: try to fetch small endpoint or cart page and extract .cart-count
+            fetch('/cart/')
+            .then(response => response.text())
+            .then(html => {
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const cartCountElement = temp.querySelector('.cart-count');
+                if (cartCountElement) {
+                    const target = document.getElementById('cart-count');
+                    if (target) target.textContent = cartCountElement.textContent;
+                }
+            })
+            .catch(error => {
+                console.error('Error updating cart count:', error);
+            });
+        }
+
+        // Auto-refresh functionality for product updates
+    // Ensure lastProductCount is rendered as a quoted value and parsed to avoid JS parse issues
+    let lastProductCount = parseInt('{{ fish_items|length|default:"0" }}', 10) || 0;
+    let refreshInterval = null;
+
+        function checkForProductUpdates() {
+            fetch(window.location.href, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const productCards = temp.querySelectorAll('.product-card');
+                const currentProductCount = productCards.length;
+                if (currentProductCount !== lastProductCount) {
+                    lastProductCount = currentProductCount;
+                    window.location.reload();
+                }
+            })
+            .catch(err => {
+                console.log('Auto-refresh check failed:', err);
+            });
+        }
+
+        // Initialize cart count and auto-refresh on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartCount();
+            loadSavedAddress();
+
+            // start auto-refresh every 10s
+            try {
+                refreshInterval = setInterval(checkForProductUpdates, 10000);
+            } catch (e) { console.warn(e); }
+
+            // Attach handlers for add-to-cart and order-now buttons
+            document.querySelectorAll('.add-to-cart').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-fish-id');
+                    addToCart(id);
+                });
+            });
+
+            document.querySelectorAll('.order-now').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-fish-id');
+                    const name = this.getAttribute('data-fish-name');
+                    const price = this.getAttribute('data-price');
+                    const image = this.getAttribute('data-image');
+                    const stock = this.getAttribute('data-stock');
+                    openOrderModal(id, name, price, image, stock);
+                });
+            });
+
+            // close modal on click outside
+            const overlay = document.getElementById('order-modal');
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) closeOrderModal();
+                });
+            }
+        });
+
+        // Pause auto-refresh on page hidden / resume on visible
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                if (refreshInterval) clearInterval(refreshInterval);
+            } else {
+                refreshInterval = setInterval(checkForProductUpdates, 10000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Seller Dashboard - DailyFish{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#e23b3b',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        :root {
+            --primary: #e23b3b;
+            --primary-hover: #c82333;
+            --secondary: #6b7280;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --header-height: 70px;
+            --sidebar-width: 260px;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        body { 
+            background-color: #f8f9fa; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header { 
+            background: white; 
+            box-shadow: var(--box-shadow);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: var(--header-height);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100%;
+        }
+        
+        .header-title { 
+            color: #e23b3b; 
+            margin: 0; 
+            font-size: 1.8rem; 
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .header-title:hover {
+            color: #c82333;
+        }
+        
+        /* Navigation */
+        .nav { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem;
+        }
+        
+        .nav a, .nav button {
+            padding: 0.5rem 1rem;
+            background: white;
+            color: #e23b3b;
+            border: 2px solid #e23b3b;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        
+        .nav a i, .nav button i {
+            font-size: 1.1em;
+        }
+        
+        .nav a:hover, .nav button:hover {
+            background: #f8d7da !important;
+            color: #c82333 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(226, 59, 59, 0.3);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-top: calc(var(--header-height) + 1rem);
+            padding: 1rem 2rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            min-height: calc(100vh - var(--header-height) - 2rem);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            gap: 0.4rem;
+            font-size: 0.95rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #c82333;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'seller_dashboard' %}" class="flex items-center">
+                <h1 class="header-title">DailyFish <span class="text-gray-600">Seller</span></h1>
+            </a>
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-1">
+                <a href="{% url 'seller_dashboard' %}" class="px-3 py-2 text-sm font-medium rounded-md {% if active_tab == 'dashboard' %}text-primary bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                </a>
+                <a href="{% url 'seller_products' %}" class="px-3 py-2 text-sm font-medium rounded-md {% if active_tab == 'products' %}text-primary bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                    <i class="fas fa-fish mr-2"></i> Products
+                </a>
+                <a href="{% url 'seller_orders' %}" class="px-3 py-2 text-sm font-medium rounded-md {% if active_tab == 'orders' %}text-primary bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                    <i class="fas fa-shopping-bag mr-2"></i> Orders
+                    {% if pending_orders > 0 %}
+                    <span class="ml-1 px-1.5 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">{{ pending_orders }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'seller_messages' %}" class="px-3 py-2 text-sm font-medium rounded-md {% if active_tab == 'messages' %}text-primary bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                    <i class="fas fa-envelope mr-2"></i> Messages
+                </a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <!-- Notifications -->
+                <div class="relative group">
+                    <button class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full focus:outline-none">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+                    </button>
+                    <div class="hidden group-hover:block absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-100">
+                        <div class="px-4 py-2 border-b border-gray-100">
+                            <h3 class="font-medium text-gray-900">Notifications</h3>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                        <i class="fas fa-shopping-cart text-red-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">New order received</p>
+                                        <p class="text-xs text-gray-500">2 minutes ago</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-50">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <i class="fas fa-envelope text-blue-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">New message from customer</p>
+                                        <p class="text-xs text-gray-500">1 hour ago</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="px-4 py-2 border-t border-gray-100">
+                            <a href="{% url 'seller_notifications' %}" class="block text-center text-sm font-medium text-primary hover:text-red-700">
+                                View all notifications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div class="relative group">
+                    <a href="{% url 'seller_messages' %}" class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full focus:outline-none relative">
+                        <i class="fas fa-envelope text-xl"></i>
+                        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-blue-500"></span>
+                    </a>
+                </div>
+
+                <!-- User Profile Dropdown -->
+                <div class="relative group">
+                    <button class="flex items-center space-x-2 focus:outline-none">
+                        <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-user text-gray-600"></i>
+                        </div>
+                        <div class="hidden md:block text-left">
+                            <p class="text-sm font-medium text-gray-700">{{ request.user.get_full_name|default:request.user.username }}</p>
+                            <p class="text-xs text-gray-500">Seller</p>
+                        </div>
+                        <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                    </button>
+                    <div class="hidden group-hover:block absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-100">
+                        <a href="{% url 'seller_profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-user-circle mr-3 text-gray-400"></i> Your Profile
+                        </a>
+                        <a href="{% url 'seller_settings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-cog mr-3 text-gray-400"></i> Settings
+                        </a>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
+                                <i class="fas fa-sign-out-alt mr-3 text-gray-400"></i> Sign out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button id="mobileMenuButton" class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none ml-4">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-200">
+            <div class="px-4 py-2">
+                <a href="{% url 'seller_dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded {% if active_tab == 'dashboard' %}bg-gray-100 font-medium{% endif %}">
+                    <i class="fas fa-tachometer-alt mr-3 w-4 text-center"></i> Dashboard
+                </a>
+                <a href="{% url 'seller_products' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded {% if active_tab == 'products' %}bg-gray-100 font-medium{% endif %}">
+                    <i class="fas fa-fish mr-3 w-4 text-center"></i> Products
+                </a>
+                <a href="{% url 'seller_orders' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded {% if active_tab == 'orders' %}bg-gray-100 font-medium{% endif %}">
+                    <i class="fas fa-shopping-bag mr-3 w-4 text-center"></i> Orders
+                    {% if pending_orders > 0 %}
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full ml-2">{{ pending_orders }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'seller_messages' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded {% if active_tab == 'messages' %}bg-gray-100 font-medium{% endif %}">
+                    <i class="fas fa-envelope mr-3 w-4 text-center"></i> Messages
+                </a>
+                <a href="{% url 'seller_profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded {% if active_tab == 'profile' %}bg-gray-100 font-medium{% endif %}">
+                    <i class="fas fa-user mr-3 w-4 text-center"></i> Profile
+                </a>
+                <div class="border-t border-gray-200 my-2"></div>
+                <form method="post" action="{% url 'logout' %}" class="w-full">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-3 w-4 text-center"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Main Content -->
+        <div class="main-content w-full">
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="p-4 mb-4 text-sm rounded-lg {% if message.tags %}{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% block content %}
+            <!-- Page content will be inserted here -->
+            {% endblock %}
+        </div>
+    </div>
+
+    <script>
+        // Mobile sidebar toggle
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                e.target !== toggleBtn && 
+                !toggleBtn.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

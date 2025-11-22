@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order History - DailyFish</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            /* Light red base with soft radiant highlights */
+            background:
+                radial-gradient(circle at top left, rgba(226, 59, 59, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(226, 59, 59, 0.15), transparent 55%),
+                #fff5f5;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .header-content { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; }
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e23b3b;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            padding-left: 25px;
+        }
+
+        .logo img {
+            position: absolute;
+            left: -190px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            height: auto;
+        }
+        .header-title { color: #e23b3b; margin: 0; font-size: 1.8rem; }
+        .nav { display: flex; align-items: center; gap: 0.75rem; }
+        .nav a { background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; padding: 0.5rem 0.9rem; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .nav a:hover { background: white !important; color: #c82333 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(226,59,59,0.3); }
+        main.container { margin-top: 100px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'fish_list' %}" class="logo">
+                <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo">
+                <span class="logo-text">DailyFish</span>
+            </a>
+            <nav class="nav">
+                <a href="{% url 'fish_list' %}">Shop Fish</a>
+                <a href="{% url 'cart' %}" style="display:flex; align-items:center; gap:.4rem;">
+                    <span>Cart</span>
+                    <span style="font-size:1.1rem;">🛒</span>
+                </a>
+                <a href="{% url 'order_history' %}">My Orders</a>
+                <a href="{% url 'message_center' %}">Messages</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="main-content">
+            <h1 style="color: #e23b3b; margin-bottom: 2rem;">My Orders</h1>
+
+            <div id="orders-root"></div>
+        </div>
+    </main>
+
+<script>
+    function h(html) {
+        const t = document.createElement('template');
+        t.innerHTML = html.trim();
+        return t.content.firstChild;
+    }
+
+    function renderOrders(orders) {
+        const root = document.getElementById('orders-root');
+        if (!orders || !orders.length) {
+            root.innerHTML = `
+            <div class="empty-state">
+                <h3>No orders yet</h3>
+                <p>Start shopping to see your orders here!</p>
+                <a href="{% url 'fish_list' %}" class="btn btn-primary">Shop Now</a>
+            </div>`;
+            return;
+        }
+
+        const list = document.createElement('div');
+        list.style.cssText = 'display:flex;flex-direction:column;gap:1rem;';
+
+        orders.forEach(o => {
+            const badgeColor = o.status === 'Pending' ? 'var(--warning)'
+                              : (o.status === 'Completed' ? 'var(--success)'
+                                 : (o.status === 'Cancelled' ? 'var(--danger)'
+                                    : 'var(--old-mauve)'));
+
+            const card = h(`
+            <div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:1.5rem;box-shadow:var(--shadow)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <div>
+                        <h3 style="color:var(--old-mauve);margin-bottom:.25rem">Order #${o.id}</h3>
+                        <p style="color:var(--muted);font-size:.9rem">${o.created_at}</p>
+                    </div>
+                    <div style="text-align:right">
+                        <span class="btn btn-secondary" style="background:${badgeColor};color:white;margin-bottom:.5rem">${o.status}</span>
+                        <p style="font-weight:600;color:var(--old-mauve);font-size:1.1rem">₱${Number(o.total).toFixed(2)}</p>
+                    </div>
+                </div>
+                <div style="margin-bottom:1rem">
+                    <h4 style="color:var(--dark-gray);margin-bottom:.5rem">Items:</h4>
+                    <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+                        ${o.items.map(i => `<span style="background:var(--light-gray);padding:.25rem .5rem;border-radius:4px;font-size:.9rem">${i.fish} (${Number(i.qty).toFixed(1)}kg)</span>`).join('')}
+                    </div>
+                </div>
+                <div style="display:flex;gap:1rem">
+                    <a href="/orders/${o.id}/" class="btn btn-primary">View Details</a>
+                </div>
+            </div>`);
+            list.appendChild(card);
+        });
+
+        root.innerHTML = '';
+        root.appendChild(list);
+    }
+
+    let ordersCache = [];
+
+    function poll() {
+        // Use double quotes for the outer JS string so Django template tag renders correctly
+        fetch("{% url 'user_orders_data' %}")
+            .then(r => r.json())
+            .then(d => {
+                const key = (os) => os.map(o => `${o.id}:${o.status}:${o.total}`).join('|');
+                if (key(d.orders) !== key(ordersCache)) {
+                    ordersCache = d.orders;
+                    renderOrders(ordersCache);
+                }
+            })
+            .catch(err => {
+                // optional: console.log(err);
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        poll();
+        setInterval(poll, 4000);
+    });
+</script>
+</body>
+</html>

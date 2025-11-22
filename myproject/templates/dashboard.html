@@ -1,0 +1,129 @@
+{% extends 'buyer_base.html' %}
+{% load static humanize %}
+
+{% block title %}Buyer Dashboard - DailyFish{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 mt-16">
+    <!-- Dashboard Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Buyer Dashboard</h1>
+            <p class="text-gray-600 mt-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}! Here's your order history.</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'fish_list' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 shadow hover:shadow-md">
+                <i class="fas fa-fish mr-2"></i> Browse Fish
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Orders Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">Recent Orders</h2>
+            <p class="text-sm text-gray-500">Your most recent purchases</p>
+        </div>
+        
+        {% if recent_orders %}
+            <div class="divide-y divide-gray-200">
+                {% for order in recent_orders %}
+                    <div class="p-6 hover:bg-gray-50 transition-colors">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between">
+                            <div class="mb-4 md:mb-0">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium text-gray-500 mr-2">Order #{{ order.id }}</span>
+                                    <span class="px-2 py-1 text-xs rounded-full {% if order.status == 'completed' %}bg-green-100 text-green-800{% elif order.status == 'pending' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    {{ order.items.count }} item{{ order.items.count|pluralize }} • {{ order.created_at|date:"M d, Y H:i" }}
+                                </p>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-lg font-semibold text-gray-900 mr-4">₱{{ order.total_amount|intcomma }}</span>
+                                <a href="{% url 'order_detail' order.id %}" class="text-primary hover:text-primary-dark font-medium">
+                                    View Details <i class="fas fa-arrow-right ml-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 text-right">
+                <a href="{% url 'order_history' %}" class="text-primary hover:text-primary-dark font-medium">
+                    View all orders <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        {% else %}
+            <div class="p-12 text-center">
+                <div class="inline-block p-4 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-shopping-bag text-gray-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-1">No orders yet</h3>
+                <p class="text-gray-500 mb-6">You haven't placed any orders yet. Start shopping now!</p>
+                <a href="{% url 'fish_list' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-all duration-200">
+                    <i class="fas fa-fish mr-2"></i> Browse Fish
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <a href="{% url 'fish_list' %}" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="p-3 bg-blue-50 rounded-lg text-blue-600 mr-4">
+                    <i class="fas fa-fish text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Browse Fish</h3>
+                    <p class="text-sm text-gray-500">Find fresh fish and seafood</p>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{% url 'order_history' %}" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="p-3 bg-green-50 rounded-lg text-green-600 mr-4">
+                    <i class="fas fa-history text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Order History</h3>
+                    <p class="text-sm text-gray-500">View all your past orders</p>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{% url 'profile' %}" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="p-3 bg-purple-50 rounded-lg text-purple-600 mr-4">
+                    <i class="fas fa-user text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-900">My Profile</h3>
+                    <p class="text-sm text-gray-500">Update your account details</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+</style>
+{% endblock %}

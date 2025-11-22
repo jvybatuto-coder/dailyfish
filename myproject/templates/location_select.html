@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Location - DailyFish</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        function requestLocationPermission() {
+            const errorBanner = document.getElementById('geo-error');
+            const enableMsg = document.getElementById('enable-msg');
+            const formFields = document.querySelectorAll('[data-geo-locked]');
+            if (!navigator.geolocation) {
+                errorBanner.textContent = 'Geolocation is not supported by your browser.';
+                errorBanner.style.display = 'block';
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                document.getElementById('lat').value = pos.coords.latitude;
+                document.getElementById('lng').value = pos.coords.longitude;
+                formFields.forEach(function(el){ el.disabled = false; el.removeAttribute('data-geo-locked'); });
+                enableMsg.style.display = 'none';
+                document.getElementById('location-form').scrollIntoView({behavior: 'smooth'});
+                closeLocationModal();
+            }, function(err) {
+                errorBanner.textContent = 'Please enable your location to continue.';
+                errorBanner.style.display = 'block';
+            });
+        }
+        function openLocationModal(){
+            document.getElementById('location-modal').style.display = 'flex';
+        }
+        function closeLocationModal(){
+            document.getElementById('location-modal').style.display = 'none';
+        }
+        window.addEventListener('DOMContentLoaded', function(){
+            // keep fields disabled until location is granted
+            const formFields = document.querySelectorAll('[data-geo-locked]');
+            formFields.forEach(function(el){ el.disabled = true; });
+
+            // simple client-side validation
+            document.getElementById('location-form').addEventListener('submit', function(e){
+                const requiredIds = ['country','province','municipality','barangay'];
+                for (var i=0;i<requiredIds.length;i++){
+                    var el = document.getElementById(requiredIds[i]);
+                    if (!el.value || el.value.trim() === ''){
+                        e.preventDefault();
+                        const errorBanner = document.getElementById('geo-error');
+                        errorBanner.textContent = 'Please complete all required fields.';
+                        errorBanner.style.display = 'block';
+                        el.focus();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+    <style>
+        body {
+            /* Light red base with soft radiant highlights */
+            background:
+                radial-gradient(circle at top left, rgba(226, 59, 59, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(226, 59, 59, 0.15), transparent 55%),
+                #fff5f5;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        /* Header - match seller/buyer style */
+        .header { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .header-content { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; }
+        .header-title { color: #e23b3b; margin: 0; font-size: 1.8rem; }
+        .nav { display: flex; align-items: center; gap: 0.75rem; }
+        .nav a { background: #fff; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; padding: 0.5rem 0.9rem; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .nav a:hover { background: #fff !important; color: #c82333 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(226,59,59,0.3); }
+
+        /* Page spacing for fixed header */
+        main.container { margin-top: 100px; }
+
+        /* Save button - keep primary red fill */
+        .btn-save { background: #dc3545; color: #fff; }
+        .btn-save:hover { background: #b52a37; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center; z-index: 1100;
+        }
+        .modal-card {
+            background: var(--white); width: min(520px, 92%);
+            border-radius: 12px; box-shadow: var(--shadow-hover); padding: 1.5rem;
+        }
+        .modal-actions { display: flex; gap: .5rem; justify-content: center; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">DailyFish</h1>
+            <nav class="nav">
+                {% if location_display %}
+                    <a href="{% url 'location_select' %}">{{ location_display }}</a>
+                {% else %}
+                    <a href="{% url 'location_select' %}">Select Address</a>
+                {% endif %}
+                <a href="{% url 'cart' %}" style="display:flex; align-items:center; gap:.4rem;">
+                    <span>Cart</span>
+                    <span style="font-size:1.1rem;">🛒</span>
+                </a>
+                <a href="{% url 'order_history' %}">My Orders</a>
+                <a href="{% url 'message_center' %}">Messages</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 720px;">
+        <div id="geo-error" class="alert alert-error" style="display:none; text-align:center; margin-top:1rem;"></div>
+
+        <div class="form-card">
+            <h1 style="color: var(--old-mauve); text-align: center; margin-bottom: 1rem;">Select Address</h1>
+            <p id="enable-msg" style="text-align:center; color: var(--muted); margin-bottom: 1rem;">Please enable your location to continue.</p>
+            <div style="text-align:center; margin-bottom: 1.5rem;">
+                <button type="button" class="btn btn-primary" onclick="openLocationModal()">Select Address</button>
+            </div>
+
+            <form id="location-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" id="lat" name="lat" value="{{ location.lat|default:'' }}">
+                <input type="hidden" id="lng" name="lng" value="{{ location.lng|default:'' }}">
+
+                <div class="form-group">
+                    <label class="form-label" for="country">Country</label>
+                    <input class="form-input" id="country" name="country" placeholder="Philippines" value="{{ location.country|default:'Philippines' }}" data-geo-locked>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="province">Province</label>
+                    <input class="form-input" id="province" name="province" placeholder="Province" value="{{ location.province|default:'' }}" data-geo-locked>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="municipality">Municipality / City</label>
+                    <input class="form-input" id="municipality" name="municipality" placeholder="Municipality" value="{{ location.municipality|default:'' }}" data-geo-locked>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="barangay">Barangay</label>
+                    <input class="form-input" id="barangay" name="barangay" placeholder="Barangay" value="{{ location.barangay|default:'' }}" data-geo-locked>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="details">Enter address details (optional)</label>
+                    <input class="form-input" id="details" name="details" placeholder="Street name, house number, landmark (optional)" value="{{ location.details|default:'' }}" data-geo-locked>
+                </div>
+
+                <button type="submit" class="btn btn-save" style="width:100%; font-size:1.05rem;">Save</button>
+                <p style="text-align:center; color: var(--muted); margin-top: 0.75rem;">By clicking Save, you acknowledge that you have read the Privacy Policy.</p>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modal: Require Location Access -->
+    <div id="location-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <h2 style="color: var(--old-mauve); text-align:center; margin-bottom: .75rem;">Enable Location</h2>
+            <p style="text-align:center; color: var(--muted);">Please enable your location to continue.</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="requestLocationPermission()">Enable Location</button>
+                <button class="btn btn-secondary" onclick="closeLocationModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+

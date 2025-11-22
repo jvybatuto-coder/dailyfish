@@ -1,0 +1,825 @@
+{% extends 'buyer_base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ fish.name }} - DailyFish{% endblock %}
+
+{% block extra_css %}
+<style>
+    .review-count {
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    .leave-review-btn {
+        background: #e23b3b;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .leave-review-btn:hover {
+        background: #c53030;
+    }
+    
+    /* Image zoom styles */
+    #product-image.zoomed {
+        transform: scale(1.5);
+        cursor: zoom-out;
+        transition: transform 0.3s ease;
+        z-index: 1000;
+        position: relative;
+    }
+    
+    /* Notification styles */
+    .notification-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1000;
+    }
+    
+    .notification {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.375rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 300px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .notification.success {
+        background-color: #10b981;
+    }
+    
+    .notification.error {
+        background-color: #ef4444;
+    }
+    
+    .notification.warning {
+        background-color: #f59e0b;
+    }
+    
+    .notification-close {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.25rem;
+        line-height: 1;
+        margin-left: 0.5rem;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Product details styles */
+    .product-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        margin-top: 2rem;
+    }
+    
+    .product-image-container {
+        position: relative;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .product-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.3s ease;
+        cursor: zoom-in;
+    }
+    
+    .product-details {
+        padding: 1.5rem;
+    }
+    
+    .product-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-price {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #e23b3b;
+        margin-bottom: 1rem;
+    }
+    
+    .product-description {
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .product-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .meta-item i {
+        margin-right: 0.5rem;
+        color: #9ca3af;
+    }
+    
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .quantity-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f3f4f6;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .quantity-btn:hover {
+        background-color: #e5e7eb;
+    }
+    
+    .quantity-input {
+        width: 4rem;
+        height: 2.5rem;
+        text-align: center;
+        border: 1px solid #d1d5db;
+        border-left: none;
+        border-right: none;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    
+    .btn-add-to-cart {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #e23b3b;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        transition: background-color 0.2s;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    
+    .btn-add-to-cart:hover {
+        background-color: #c53030;
+    }
+    
+    .btn-add-to-cart i {
+        margin-right: 0.5rem;
+    }
+    
+    .stock-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .in-stock {
+        background-color: #e8f5e9;
+        color: #28a745;
+    }
+    
+    .out-of-stock {
+        background-color: #ffebee;
+        color: #dc3545;
+    }
+    
+    /* Related products */
+    .related-products {
+        margin-top: 4rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 3rem;
+        height: 3px;
+        background-color: #e23b3b;
+    }
+    
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .product-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .product-card-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .product-card-body {
+        padding: 1rem;
+    }
+    
+    .product-card-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .product-card-price {
+        font-weight: 600;
+        color: #e23b3b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+    
+    .product-rating {
+        display: flex;
+        align-items: center;
+    }
+    
+    .product-rating i {
+        color: #f59e0b;
+        margin-right: 0.25rem;
+    }
+    
+    .stock-value {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .stock-value.in-stock {
+        color: #28a745;
+        background-color: #e8f5e9;
+    }
+    
+    .stock-value.out-of-stock {
+        color: #dc3545;
+        background-color: #ffebee;
+    }
+    
+    /* Review styles */
+    .review-item {
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .review-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .reviewer-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .reviewer-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: #6b7280;
+    }
+    
+    .reviewer-name {
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+    
+    .review-date {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .review-rating {
+        color: #f59e0b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .review-content {
+        color: #4b5563;
+        line-height: 1.6;
+    }
+    
+    .review-purchased {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed #e5e7eb;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .review-purchased strong {
+        color: #4b5563;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 mt-16">
+    <!-- Product Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">{{ fish.name }}</h1>
+            <div class="flex items-center mt-2">
+                <div class="flex items-center">
+                    {% if average_rating > 0 %}
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= average_rating|floatformat:0|add:"0" %}
+                                <i class="fas fa-star text-yellow-400"></i>
+                            {% else %}
+                                <i class="far fa-star text-yellow-400"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ml-2 text-gray-600">{{ average_rating|floatformat:1 }} ({{ rating_count }} review{{ rating_count|pluralize }})</span>
+                    {% else %}
+                        <span class="text-gray-500">No reviews yet</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'fish_list' %}" class="text-primary-600 hover:text-primary-800 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Products
+            </a>
+        </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Product Image -->
+        <div class="lg:col-span-1">
+            <div class="product-image-container">
+                <img src="{{ fish.image.url }}" alt="{{ fish.name }}" class="product-image" id="product-image">
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="product-title">{{ fish.name }}</h2>
+                <p class="product-price">₱{{ fish.price_per_kg|floatformat:2 }} <span class="text-sm text-gray-500">/ kg</span></p>
+                
+                <div class="product-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-tag"></i>
+                        <span>Category: {{ fish.category.name }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-box"></i>
+                        <span>Stock: 
+                            {% if fish.stock_kg > 0 %}
+                                <span class="stock-value in-stock">{{ fish.stock_kg|floatformat:2 }} kg available</span>
+                            {% else %}
+                                <span class="stock-value out-of-stock">Out of stock</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-store"></i>
+                        <span>Sold by: {{ fish.seller.get_full_name|default:fish.seller.username }}</span>
+                    </div>
+                </div>
+                
+                <p class="product-description">{{ fish.description|linebreaksbr }}</p>
+                
+                {% if fish.stock_kg > 0 %}
+                <form id="add-to-cart-form" class="mt-6">
+                    {% csrf_token %}
+                    <div class="quantity-selector">
+                        <button type="button" class="quantity-btn" id="decrease-qty">-</button>
+                        <input type="number" name="quantity" value="1" min="0.1" max="{{ fish.stock_kg|floatformat:2 }}" step="0.1" class="quantity-input" id="quantity-input">
+                        <button type="button" class="quantity-btn" id="increase-qty">+</button>
+                        <span class="ml-2 text-gray-600">kg</span>
+                    </div>
+                    <button type="submit" class="btn-add-to-cart">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                </form>
+                {% else %}
+                <button class="btn-add-to-cart opacity-50 cursor-not-allowed" disabled>
+                    <i class="fas fa-times-circle"></i> Out of Stock
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="mt-12">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="section-title">Customer Reviews</h2>
+            {% if has_purchased and can_leave_feedback %}
+            <button id="open-review-modal" class="leave-review-btn">
+                <i class="fas fa-edit"></i> Write a Review
+            </button>
+            {% endif %}
+        </div>
+        
+        {% if feedback_list %}
+            <div class="space-y-6">
+                {% for feedback in feedback_list %}
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="reviewer-name">{{ feedback.buyer.get_full_name|default:feedback.buyer.username }}</div>
+                                <div class="review-date">{{ feedback.created_at|naturaltime }}</div>
+                            </div>
+                        </div>
+                        <div class="review-rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= feedback.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="review-content">
+                        {{ feedback.comment|linebreaksbr }}
+                    </div>
+                    {% if feedback.order %}
+                    <div class="review-purchased">
+                        <strong>Order #{{ feedback.order.id }}</strong>
+                        <div class="mt-1">
+                            {% for item in feedback.order.items.all %}
+                                {% if item.fish.id == fish.id %}
+                                <div>Purchased: {{ item.quantity_kg|floatformat:2 }}kg on {{ feedback.order.created_at|date:"M d, Y" }}</div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                <i class="far fa-comment-dots text-4xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-700 mb-2">No Reviews Yet</h3>
+                <p class="text-gray-500 mb-4">Be the first to review this product!</p>
+                {% if has_purchased and can_leave_feedback %}
+                <button id="open-review-modal-empty" class="leave-review-btn">
+                    <i class="fas fa-edit"></i> Write a Review
+                </button>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_fish %}
+    <div class="related-products mt-16">
+        <h2 class="section-title">You May Also Like</h2>
+        <div class="products-grid">
+            {% for fish in related_fish %}
+            <div class="product-card">
+                <a href="{% url 'fish_detail' fish.id %}">
+                    <img src="{{ fish.image.url }}" alt="{{ fish.name }}" class="product-card-img">
+                    <div class="product-card-body">
+                        <h3 class="product-card-title">{{ fish.name }}</h3>
+                        <div class="product-card-price">₱{{ fish.price_per_kg|floatformat:2 }} <span class="text-sm text-gray-500">/ kg</span></div>
+                        <div class="product-card-meta">
+                            <div class="product-rating">
+                                {% if fish.average_rating > 0 %}
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= fish.average_rating|floatformat:0|add:"0" %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ml-1 text-gray-500">({{ fish.rating_count }})</span>
+                                {% else %}
+                                    <span class="text-gray-400 text-xs">No reviews yet</span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if fish.stock_kg > 0 %}
+                                    <span class="stock-value in-stock">In Stock</span>
+                                {% else %}
+                                    <span class="stock-value out-of-stock">Out of Stock</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+
+
+<!-- Notification Container -->
+<div class="notification-container"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Star rating interaction
+        const ratingInputs = document.querySelectorAll('.rating-input input[type="radio"]');
+        const ratingStars = document.querySelectorAll('.rating-input i');
+        
+        // Function to update star colors
+        function updateStarColors(activeIndex) {
+            ratingStars.forEach((star, i) => {
+                if (i < activeIndex) {
+                    star.classList.remove('far');
+                    star.classList.add('fas');
+                } else {
+                    star.classList.remove('fas');
+                    star.classList.add('far');
+                }
+            });
+        }
+        
+        // Add event listeners to rating inputs
+        if (ratingInputs.length > 0) {
+            ratingInputs.forEach((input, index) => {
+                input.addEventListener('change', function() {
+                    updateStarColors(parseInt(this.value));
+                });
+                
+                // Hover effect for stars
+                input.addEventListener('mouseover', function() {
+                    updateStarColors(parseInt(this.value));
+                });
+                
+                // Reset to selected rating on mouseout
+                input.addEventListener('mouseout', function() {
+                    const checkedInput = document.querySelector('.rating-input input[type="radio"]:checked');
+                    if (checkedInput) {
+                        updateStarColors(parseInt(checkedInput.value));
+                    } else {
+                        updateStarColors(0);
+                    }
+                });
+            });
+            
+            // Initialize with default rating if any
+            const defaultRating = document.querySelector('.rating-input input[type="radio"]:checked');
+            if (defaultRating) {
+                updateStarColors(parseInt(defaultRating.value));
+            }
+        }
+        
+        // Image zoom functionality
+        const productImage = document.getElementById('product-image');
+        if (productImage) {
+            productImage.addEventListener('click', function() {
+                this.classList.toggle('zoomed');
+            });
+        }
+        
+        // Quantity selector
+        const minusBtn = document.getElementById('decrease-qty');
+        const plusBtn = document.getElementById('increase-qty');
+        const quantityInput = document.getElementById('quantity-input');
+        
+        if (minusBtn && plusBtn && quantityInput) {
+            minusBtn.addEventListener('click', function() {
+                let value = parseFloat(quantityInput.value) || 0.1;
+                if (value > 0.1) {
+                    value = Math.max(0.1, value - 0.1).toFixed(1);
+                    quantityInput.value = value.endsWith('.0') ? parseInt(value) : value;
+                }
+            });
+            
+            plusBtn.addEventListener('click', function() {
+                let value = parseFloat(quantityInput.value) || 0;
+                const maxStock = parseFloat('{{ fish.stock_kg|default:10 }}');
+                if (value < maxStock) {
+                    value = Math.min(maxStock, value + 0.1).toFixed(1);
+                    quantityInput.value = value.endsWith('.0') ? parseInt(value) : value;
+                } else {
+                    showNotification(`Maximum available stock is ${maxStock}kg`, 'warning');
+                }
+            });
+            
+            // Validate input
+            quantityInput.addEventListener('change', function() {
+                let value = parseFloat(this.value) || 0.1;
+                const maxStock = parseFloat('{{ fish.stock_kg|default:10 }}');
+                
+                if (value < 0.1) {
+                    this.value = 0.1;
+                } else if (value > maxStock) {
+                    this.value = maxStock.toFixed(1);
+                    showNotification(`Maximum available stock is ${maxStock}kg`, 'warning');
+                } else {
+                    // Format to 1 decimal place if needed
+                    this.value = value % 1 === 0 ? value : value.toFixed(1);
+                }
+            });
+        }
+        
+        // Add to cart form submission
+        const addToCartForm = document.getElementById('add-to-cart-form');
+        if (addToCartForm) {
+            addToCartForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const quantity = parseFloat(quantityInput.value) || 0.1;
+                const fishId = '{{ fish.id }}';
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch('{% url "add_to_cart" fish.id %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: `quantity=${quantity}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update cart count in the header
+                        const cartCount = document.getElementById('cart-count');
+                        if (cartCount) {
+                            cartCount.textContent = data.cart_count;
+                        }
+                        showNotification(data.message, 'success');
+                    } else {
+                        showNotification(data.message || 'Failed to add to cart', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('An error occurred. Please try again.', 'error');
+                });
+            });
+        }
+        
+        // Review modal functionality
+        const reviewModal = document.getElementById('review-modal');
+        const openReviewModalBtns = document.querySelectorAll('[id^="open-review-modal"]');
+        const closeReviewModalBtn = document.getElementById('close-review-modal');
+        const cancelReviewBtn = document.getElementById('cancel-review');
+        
+        function openReviewModal() {
+            reviewModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeReviewModal() {
+            reviewModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        openReviewModalBtns.forEach(btn => {
+            btn.addEventListener('click', openReviewModal);
+        });
+        
+        closeReviewModalBtn.addEventListener('click', closeReviewModal);
+        cancelReviewBtn.addEventListener('click', closeReviewModal);
+        
+        // Close modal when clicking outside
+        reviewModal.addEventListener('click', function(e) {
+            if (e.target === reviewModal) {
+                closeReviewModal();
+            }
+        });
+        
+        // Show notification function
+        function showNotification(message, type = 'success') {
+            let container = document.querySelector('.notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'notification-container';
+                document.body.appendChild(container);
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button class="notification-close">&times;</button>
+            `;
+            
+            const closeBtn = notification.querySelector('.notification-close');
+            closeBtn.addEventListener('click', () => {
+                notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            });
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+        
+        // Make showNotification function globally available
+        window.showNotification = showNotification;
+    });
+</script>
+{% endblock %}

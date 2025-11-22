@@ -1,0 +1,396 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyFish - Fresh Seafood Marketplace</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            /* Light red base with soft radiant highlights */
+            background:
+                radial-gradient(circle at top left, rgba(226, 59, 59, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(226, 59, 59, 0.15), transparent 55%),
+                #fff5f5;
+            margin: 0; 
+            min-height: 100vh;
+        }
+        .seller-navbar { position: fixed; top: 0; left: 0; right: 0; background: #ffffff; box-shadow: 0 1px 4px rgba(15,23,42,0.08); z-index: 50; }
+        .seller-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .seller-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #e63946; text-decoration: none; }
+        .seller-logo i { font-size: 1.5rem; }
+        .seller-nav-links { display: flex; align-items: center; gap: 1rem; }
+        .seller-nav-links a { text-decoration: none; color: #0f172a; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 999px; transition: background 0.15s, color 0.15s; font-size: 0.9rem; }
+        .seller-nav-links a:hover, .seller-nav-links a.active { background: #e63946; color: #ffffff; }
+        .seller-main { max-width: 800px; margin: 5rem auto 2rem; padding: 0 1.5rem 2rem; }
+        .seller-header { margin-bottom: 1.5rem; display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+        .seller-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+        .seller-subtitle { color: #6b7280; font-size: 0.9rem; }
+        .seller-name-chip { font-size: 0.8rem; color: #6b7280; }
+        .seller-name-chip span { font-weight: 600; color: #111827; }
+        .card { background:#ffffff; border-radius:0.75rem; padding:1.25rem 1.5rem; box-shadow:0 1px 3px rgba(15,23,42,0.08); border-top:3px solid #e63946; }
+        .seller-info-row { display:flex; align-items:center; gap:1.25rem; }
+        .seller-avatar { width:64px; height:64px; border-radius:999px; background:#fee2e2; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:700; color:#b91c1c; border:2px solid #fecaca; }
+        .seller-info-main { flex:1; }
+        .seller-info-main h2 { margin:0; font-size:1.2rem; color:#111827; }
+        .seller-info-main p { margin:0.15rem 0; font-size:0.85rem; color:#6b7280; }
+        .seller-stats { display:flex; flex-wrap:wrap; gap:0.75rem; font-size:0.8rem; margin-top:0.5rem; }
+        .seller-stat-pill { padding:0.3rem 0.7rem; border-radius:999px; border:1px solid #fee2e2; background:#fff7f7; color:#b91c1c; font-weight:600; }
+        .seller-contact-table { margin-top:0.75rem; width:100%; border-collapse:collapse; font-size:0.85rem; }
+        .seller-contact-table th, .seller-contact-table td { padding:0.4rem 0.25rem; text-align:left; }
+        .seller-contact-table th { width:120px; font-weight:600; color:#6b7280; font-size:0.8rem; }
+        .seller-contact-table tr:hover td { background:#fef2f2; }
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem 1.25rem; margin-top:0.75rem; }
+        label { font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:0.25rem; }
+        input[type="text"], input[type="email"], textarea { width:100%; padding:0.5rem 0.6rem; border-radius:0.375rem; border:1px solid #d1d5db; font-size:0.85rem; }
+        textarea { min-height: 80px; resize: vertical; }
+        input:focus, textarea:focus { outline:none; border-color:#e63946; box-shadow:0 0 0 1px rgba(230,57,70,0.25); }
+        .form-actions { margin-top:1.25rem; display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+        .btn-primary { display:inline-flex; align-items:center; gap:0.4rem; padding:0.6rem 1.1rem; background:#e63946; color:#ffffff; border-radius:999px; border:none; cursor:pointer; font-size:0.85rem; font-weight:600; }
+        .btn-primary:hover { background:#c1121f; }
+        .btn-logout { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.8rem; text-decoration:none; color:#b91c1c; }
+        .notification-container { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 0.5rem; }
+        .notification { min-width: 260px; max-width: 420px; padding: 0.75rem 1rem; border-radius: 999px; background: #111827; color: #f9fafb; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(15,23,42,0.25); text-align: center; }
+        .notification.success { background: #16a34a; }
+        .notification.error { background: #dc2626; }
+        .notification.warning { background: #d97706; }
+        @media (max-width: 640px) {
+            .seller-nav-inner { padding-inline: 1rem; }
+            .seller-main { padding-inline: 1rem; }
+        }
+
+        /* Shared seller sidebar layout (matches dashboard) */
+        .seller-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .seller-sidebar {
+            width: 240px;
+            background: #ffffff;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .seller-logo-container {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        
+        /* Seller Dashboard Logo */
+        .seller-dashboard-logo {
+            max-width: 200px;
+            height: auto;
+            display: block;
+            margin: 0 auto 0.5rem auto;
+        }
+        
+        .seller-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #0f172a;
+            padding-top: 0rem;
+        }
+        
+        .seller-logo span {
+            font-size: 1.5rem;
+            font-weight: 680;
+            color: #dc3545;
+            margin-top: -1.3em;
+        }
+
+        .seller-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #e63946;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .seller-logo i {
+            font-size: 1.5rem;
+            color: #e63946;
+        }
+
+        .seller-name-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #374151;
+            padding: 0.5rem 0.75rem;
+            background: #ffffff;
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .seller-name-chip i {
+            font-size: 1.1rem;
+            color: #e23b3b;
+        }
+
+        .seller-name-chip span {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .seller-sidebar-nav {
+            padding: 1rem 0.5rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            color: #e23b3b;
+            background: white;
+            border: 2px solid #e23b3b;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0.5rem 0.75rem;
+        }
+
+        .nav-link:hover {
+            background: white !important;
+            color: #c82333 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(226,59,59,0.3);
+        }
+
+        .nav-link.active {
+            background: #fef2f2;
+            color: #e63946;
+            font-weight: 500;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .seller-main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 1.5rem 2rem;
+            max-width: calc(100% - 240px);
+        }
+
+        .seller-main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 0 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .seller-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .seller-sidebar.active {
+                transform: translateX(0);
+            }
+
+            .seller-main-content {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 1rem;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 60;
+                background: #e63946;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+
+            .seller-logo span {
+                display: none;
+            }
+
+            .seller-sidebar.active + .seller-main-content .mobile-menu-toggle {
+                left: 200px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .mobile-menu-toggle {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .seller-header { 
+                flex-direction: column; 
+                align-items: flex-start; 
+                margin-top: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% if messages %}
+    <div class="notification-container">
+        {% for message in messages %}
+            <div class="notification {{ message.tags|default:'' }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="seller-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="seller-sidebar">
+            <div class="seller-logo-container">
+                <a href="{% url 'seller_dashboard' %}" class="seller-logo">
+                    <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo" class="seller-dashboard-logo">
+                    <span>DailyFish</span>
+                </a>
+                <div class="seller-name-chip">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ seller_name }}</span>
+                </div>
+            </div>
+            <nav class="seller-sidebar-nav">
+                <a href="{% url 'seller_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'seller_dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'seller_products' %}" class="nav-link {% if 'products' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-fish"></i>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'seller_orders' %}" class="nav-link {% if 'orders' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'message_center' %}" class="nav-link {% if 'message' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'seller_profile' %}" class="nav-link {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="{% url 'logout' %}" class="nav-link" style="margin-top: 1rem;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="seller-main-content">
+        <main class="seller-main">
+        <header class="seller-header">
+            <div>
+                <h1 class="seller-title">Seller Profile</h1>
+                <p class="seller-subtitle">Your public store details and contact information.</p>
+            </div>
+        </header>
+
+        <!-- Store summary card -->
+        <section class="card" style="margin-bottom:1.25rem;">
+            <div class="seller-info-row">
+                <div class="seller-avatar">
+                    {{ seller_store_name|first|upper }}
+                </div>
+                <div class="seller-info-main">
+                    <h2>{{ seller_store_name }}</h2>
+                    <p>@{{ seller_name }}</p>
+                    <div class="seller-stats">
+                        <span class="seller-stat-pill">
+                            {{ seller_total_sold_kg|floatformat:0 }} kg sold
+                        </span>
+                        {% if seller_review_count > 0 %}
+                        <span class="seller-stat-pill">
+                            ★ {{ seller_avg_rating|floatformat:1 }} ({{ seller_review_count }} review{{ seller_review_count|pluralize }})
+                        </span>
+                        {% else %}
+                        <span class="seller-stat-pill">
+                            No reviews yet
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <table class="seller-contact-table">
+                <tr>
+                    <th>Gmail</th>
+                    <td>{{ seller_email }}</td>
+                </tr>
+                <tr>
+                    <th>Contact Number</th>
+                    <td>{% if seller_phone %}{{ seller_phone }}{% else %}<span style="color:#9ca3af;">Not set</span>{% endif %}</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Editable seller profile form -->
+        </section>
+        </main>
+        </main>
+    </div>
+
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <script>
+        // Toggle mobile menu
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.querySelector('.seller-sidebar');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024 && 
+                !sidebar.contains(e.target) && 
+                e.target !== mobileMenuToggle && 
+                !mobileMenuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

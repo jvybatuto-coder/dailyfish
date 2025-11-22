@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Send Message - DailyFish</title>
+
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+    }
+
+    /* ---------- HEADER ---------- */
+    .header { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+    .header .header-content { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; }
+    .header-title { color: #e23b3b; margin: 0; font-size: 1.8rem; }
+    .nav { display: flex; gap: 0.75rem; align-items: center; }
+    .nav a { background: #fff; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; padding: 0.5rem 0.9rem; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+    .nav a:hover { background: #fff !important; color: #c82333 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(226,59,59,0.3); }
+
+    /* ---------- MAIN CONTENT ---------- */
+    .main-content {
+      margin-top: 100px;
+      padding: 2rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .form-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-title {
+      color: #333;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #e23b3b;
+      box-shadow: 0 0 0 3px rgba(226, 59, 59, 0.2);
+    }
+
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: #e23b3b;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .help-text {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+
+    /* ---------- NOTIFICATION ---------- */
+    .notification-container {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      width: auto;
+      max-width: 96%;
+    }
+
+    .notification {
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: slideInDown 0.3s ease-out;
+      margin-bottom: 0.5rem;
+      border-radius: 10px;
+      display: inline-block;
+      color: #111; /* black text for readability */
+      background: #d4edda; /* default to success-like */
+    }
+
+    .notification.success { background: #d4edda; }
+    .notification.error { background: #f8d7da; }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 1.25rem;
+      }
+
+      .nav a {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9rem;
+      }
+
+      .form-title {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="notification-container" class="notification-container" aria-live="polite" aria-atomic="true"></div>
+
+  <header class="header" role="banner">
+    <div class="header-content">
+      <h1 class="header-title" aria-hidden="true">DailyFish</h1>
+      <nav class="nav" role="navigation" aria-label="Main navigation">
+      <a href="{% url 'message_center' %}">Message Center</a>
+      <a href="{% url 'fish_list' %}">Shop Fish</a>
+      <a href="{% url 'logout' %}">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content" role="main">
+    <div class="form-container" role="region" aria-labelledby="send-message-heading">
+      <h2 id="send-message-heading" class="form-title">Send a New Message</h2>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="recipient" class="form-label">Recipient Username *</label>
+          <input
+            type="text"
+            id="recipient"
+            name="recipient"
+            class="form-input"
+            required
+            placeholder="Enter the username of the person you want to message"
+            aria-required="true"
+          />
+          <div class="help-text">
+            Enter the username of the seller or buyer you want to contact
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="message_type" class="form-label">Message Type *</label>
+          <select
+            id="message_type"
+            name="message_type"
+            class="form-input"
+            required
+            aria-required="true"
+          >
+            <option value="general">General Question</option>
+            <option value="freshness">Freshness Inquiry</option>
+            <option value="delivery">Delivery Time</option>
+            <option value="product">Product Information</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="subject" class="form-label">Subject *</label>
+          <input
+            type="text"
+            id="subject"
+            name="subject"
+            class="form-input"
+            required
+            placeholder="Enter a brief subject for your message"
+            aria-required="true"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="content" class="form-label">Message Content *</label>
+          <textarea
+            id="content"
+            name="content"
+            class="form-input form-textarea"
+            required
+            placeholder="Type your message here..."
+            aria-required="true"
+          ></textarea>
+          <div class="help-text">
+            Be specific about your question or concern. Include order numbers if relevant.
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="{% url 'message_center' %}" class="btn btn-secondary" role="button">Cancel</a>
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script id="django-messages-data" type="application/json">
+    {{ messages_json|default:"[]"|safe }}
+  </script>
+
+  <script>
+    // Show notification
+    function showNotification(message, type = 'success') {
+      const container = document.getElementById('notification-container');
+      const notification = document.createElement('div');
+      notification.className = 'notification ' + (type === 'error' ? 'error' : 'success');
+      notification.setAttribute('role', 'status');
+      notification.textContent = message;
+      container.appendChild(notification);
+
+      setTimeout(() => {
+        if (notification && notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 2000);
+    }
+
+    // Parse Django messages from JSON
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        const script = document.getElementById('django-messages-data');
+        let msgs = [];
+        if (script) {
+          msgs = JSON.parse(script.textContent || '[]');
+        }
+
+        if (Array.isArray(msgs) && msgs.length > 0) {
+          msgs.forEach((msg) => {
+            let tag = 'success';
+            if (msg.tags && typeof msg.tags === 'string') {
+              if (msg.tags.includes('error') || msg.tags.includes('danger')) tag = 'error';
+              else if (msg.tags.includes('warning')) tag = 'error';
+              else if (msg.tags.includes('success')) tag = 'success';
+            }
+            showNotification(msg.message || String(msg), tag);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to parse Django messages JSON:', err);
+      }
+    });
+  </script>
+</body>
+</html>
