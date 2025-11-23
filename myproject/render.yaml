@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: fish-market
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput
+    startCommand: gunicorn myproject.wsgi:application
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DB_NAME
+        value: fish_market
+      - key: DB_USER
+        value: postgres
+      - key: DB_HOST
+        value: localhost
+      - key: DB_PORT
+        value: 5432
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+
+databases:
+  - name: fish_market
+    databaseName: fish_market
+    user: postgres
+    plan: free
