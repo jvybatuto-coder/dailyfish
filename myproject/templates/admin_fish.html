@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Products Management - DailyFish Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 50%, #ffa8a8 100%);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            padding: 2rem 0;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 0 1.5rem;
+        }
+
+        .logo h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logo .fish-icon {
+            font-size: 2rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #34495e;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-icon {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #34495e;
+        }
+
+        .btn-secondary:hover {
+            background: #bdc3c7;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .table th {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .fish-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .page-link {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #ecf0f1;
+            border-radius: 5px;
+            color: #34495e;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover, .page-link.active {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            margin: 5% auto;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                order: 2;
+            }
+
+            .main-content {
+                order: 1;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2><span class="fish-icon">🐟</span> DailyFish</h2>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'admin_dashboard' %}" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'admin_users' %}" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'admin_fish' %}" class="nav-link active">
+                            <span class="nav-icon">🐠</span>
+                            Fish Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/myapp/fishcategory/" class="nav-link">
+                            <span class="nav-icon">📁</span>
+                            Categories
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/myapp/order/" class="nav-link">
+                            <span class="nav-icon">📦</span>
+                            Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/myapp/cart/" class="nav-link">
+                            <span class="nav-icon">🛒</span>
+                            Carts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/myapp/message/" class="nav-link">
+                            <span class="nav-icon">💬</span>
+                            Messages
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/myapp/orderfeedback/" class="nav-link">
+                            <span class="nav-icon">⭐</span>
+                            Feedback
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'logout' %}" class="nav-link">
+                            <span class="nav-icon">🚪</span>
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1>Fish Products Management</h1>
+                <div class="admin-info">
+                    <span>Welcome, {{ user.username }}</span>
+                    <div class="admin-avatar">A</div>
+                </div>
+            </header>
+
+            <!-- Fish Products Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">All Fish Products</h2>
+                    <button class="btn btn-primary" onclick="openAddFishModal()">Add New Fish</button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Search fish products..." id="searchInput">
+                    <select class="form-control" style="width: 200px;" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-secondary" onclick="searchFish()">Search</button>
+                </div>
+
+                <!-- Fish Products Table -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fish_obj in fish_products %}
+                        <tr>
+                            <td>
+                                {% if fish_obj.image %}
+                                    <img src="{{ fish_obj.image.url }}" alt="{{ fish_obj.name }}" class="fish-image">
+                                {% else %}
+                                    <div style="width: 50px; height: 50px; background: #ecf0f1; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">🐠</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ fish_obj.name }}</td>
+                            <td>{{ fish_obj.category.name }}</td>
+                            <td>₱{{ fish_obj.price }}</td>
+                            <td>{{ fish_obj.stock }}</td>
+                            <td>
+                                {% if fish_obj.is_available %}
+                                    <span class="badge badge-success">Available</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Unavailable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary" onclick="editFish({{ fish_obj.id }})">Edit</button>
+                                    {% if fish_obj.is_available %}
+                                        <button class="btn btn-warning" onclick="toggleFishStatus({{ fish_obj.id }})">Hide</button>
+                                    {% else %}
+                                        <button class="btn btn-success" onclick="toggleFishStatus({{ fish_obj.id }})">Show</button>
+                                    {% endif %}
+                                    <button class="btn btn-danger" onclick="deleteFish({{ fish_obj.id }})">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #7f8c8d;">No fish products found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1" class="page-link">First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+                    {% endif %}
+                    
+                    <span class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Fish Modal -->
+    <div id="fishModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New Fish Product</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="fishForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" id="fishId" name="fish_id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Fish Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="category">Category</label>
+                        <select class="form-control" id="category" name="category" required>
+                            <option value="">Select Category</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="price">Price (₱)</label>
+                        <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="stock">Stock</label>
+                        <input type="number" class="form-control" id="stock" name="stock" min="0" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="image">Image</label>
+                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="is_available">Status</label>
+                    <select class="form-control" id="is_available" name="is_available">
+                        <option value="true">Available</option>
+                        <option value="false">Unavailable</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Fish Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddFishModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Fish Product';
+            document.getElementById('fishForm').reset();
+            document.getElementById('fishId').value = '';
+            document.getElementById('fishModal').style.display = 'block';
+        }
+
+        function editFish(fishId) {
+            // Fetch fish data and populate form
+            fetch(`/admin/fish/${fishId}/edit/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('modalTitle').textContent = 'Edit Fish Product';
+                    document.getElementById('fishId').value = data.id;
+                    document.getElementById('name').value = data.name;
+                    document.getElementById('category').value = data.category;
+                    document.getElementById('price').value = data.price;
+                    document.getElementById('stock').value = data.stock;
+                    document.getElementById('description').value = data.description;
+                    document.getElementById('is_available').value = data.is_available.toString();
+                    document.getElementById('fishModal').style.display = 'block';
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('fishModal').style.display = 'none';
+        }
+
+        function toggleFishStatus(fishId) {
+            if (confirm('Are you sure you want to toggle this fish product\'s status?')) {
+                fetch(`/admin/fish/${fishId}/toggle-status/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                });
+            }
+        }
+
+        function deleteFish(fishId) {
+            if (confirm('Are you sure you want to delete this fish product? This action cannot be undone.')) {
+                fetch(`/admin/fish/${fishId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                });
+            }
+        }
+
+        function searchFish() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            let url = '?';
+            if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}&`;
+            if (categoryFilter) url += `category=${categoryFilter}&`;
+            window.location.href = url.slice(0, -1); // Remove trailing &
+        }
+
+        // Handle form submission
+        document.getElementById('fishForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fishId = document.getElementById('fishId').value;
+            const formData = new FormData(this);
+            
+            const url = fishId ? `/admin/fish/${fishId}/edit/` : '/admin/fish/add/';
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('fishModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

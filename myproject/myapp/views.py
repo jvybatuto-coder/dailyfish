@@ -28,6 +28,9 @@ from django.urls import reverse
 from django.views.decorators.gzip import gzip_page
 from django.core.cache import cache
 from django.db.models.functions import Coalesce
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+import json
 from django.db import connection
 from functools import wraps
 import json
@@ -527,6 +530,330 @@ def admin_dashboard(request):
             'recent_activities': [],
             'error': 'Dashboard temporarily unavailable'
         })
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_users(request):
+    """Admin users management page"""
+    try:
+        from django.core.paginator import Paginator
+        
+        search_query = request.GET.get('search', '')
+        users = User.objects.filter(is_staff=False)
+        
+        if search_query:
+            users = users.filter(
+                Q(username__icontains=search_query) |
+                Q(email__icontains=search_query)
+            )
+        
+        # Pagination
+        paginator = Paginator(users, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            'users': page_obj,
+            'is_paginated': page_obj.has_other_pages(),
+            'page_obj': page_obj,
+        }
+        
+        return render(request, 'admin_users.html', context)
+        
+    except Exception as e:
+        logger.error(f'Admin users error: {str(e)}', exc_info=True)
+        return render(request, 'admin_users.html', {'users': User.objects.none()})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_fish(request):
+    """Admin fish products management page"""
+    try:
+        from django.core.paginator import Paginator
+        from .models import Fish, FishCategory
+        
+        search_query = request.GET.get('search', '')
+        category_filter = request.GET.get('category', '')
+        
+        fish_products = Fish.objects.select_related('category').all()
+        
+        if search_query:
+            fish_products = fish_products.filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
+        
+        if category_filter:
+            fish_products = fish_products.filter(category_id=category_filter)
+        
+        # Get categories for filter dropdown
+        categories = FishCategory.objects.all()
+        
+        # Pagination
+        paginator = Paginator(fish_products, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            'fish_products': page_obj,
+            'categories': categories,
+            'is_paginated': page_obj.has_other_pages(),
+            'page_obj': page_obj,
+        }
+        
+        return render(request, 'admin_fish.html', context)
+        
+    except Exception as e:
+        logger.error(f'Admin fish error: {str(e)}', exc_info=True)
+        return render(request, 'admin_fish.html', {'fish_products': [], 'categories': []})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_user_add(request):
+    """API endpoint to add new user"""
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        is_active = data.get('is_active', True)
+        
+        # Validate data
+        if not username or not email:
+            return JsonResponse({'success': False, 'error': 'Username and email are required'})
+        
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'success': False, 'error': 'Username already exists'})
+        
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({'success': False, 'error': 'Email already exists'})
+        
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            is_active=is_active
+        )
+        
+        return JsonResponse({'success': True, 'message': 'User created successfully'})
+        
+    except Exception as e:
+        logger.error(f'Admin user add error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_user_edit(request, user_id):
+    """API endpoint to edit user"""
+    try:
+        user = get_object_or_404(User, id=user_id, is_staff=False)
+        data = json.loads(request.body)
+        
+        # Update fields
+        if 'username' in data:
+            if User.objects.exclude(id=user_id).filter(username=data['username']).exists():
+                return JsonResponse({'success': False, 'error': 'Username already exists'})
+            user.username = data['username']
+        
+        if 'email' in data:
+            if User.objects.exclude(id=user_id).filter(email=data['email']).exists():
+                return JsonResponse({'success': False, 'error': 'Email already exists'})
+            user.email = data['email']
+        
+        if 'password' in data and data['password']:
+            user.set_password(data['password'])
+        
+        if 'is_active' in data:
+            user.is_active = data['is_active']
+        
+        user.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'User updated successfully',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_active': user.is_active,
+                'date_joined': user.date_joined.isoformat()
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f'Admin user edit error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_user_toggle_status(request, user_id):
+    """API endpoint to toggle user status"""
+    try:
+        user = get_object_or_404(User, id=user_id, is_staff=False)
+        user.is_active = not user.is_active
+        user.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'User {"activated" if user.is_active else "deactivated"} successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f'Admin user toggle status error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_user_delete(request, user_id):
+    """API endpoint to delete user"""
+    try:
+        user = get_object_or_404(User, id=user_id, is_staff=False)
+        user.delete()
+        
+        return JsonResponse({'success': True, 'message': 'User deleted successfully'})
+        
+    except Exception as e:
+        logger.error(f'Admin user delete error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_fish_add(request):
+    """API endpoint to add new fish product"""
+    try:
+        from .models import Fish, FishCategory
+        
+        name = request.POST.get('name')
+        category_id = request.POST.get('category')
+        price = request.POST.get('price')
+        stock = request.POST.get('stock')
+        description = request.POST.get('description', '')
+        is_available = request.POST.get('is_available', 'True') == 'True'
+        image = request.FILES.get('image')
+        
+        # Validate data
+        if not name or not category_id or not price or not stock:
+            return JsonResponse({'success': False, 'error': 'Name, category, price, and stock are required'})
+        
+        category = get_object_or_404(FishCategory, id=category_id)
+        
+        # Create fish product
+        fish = Fish.objects.create(
+            name=name,
+            category=category,
+            price=float(price),
+            stock=int(stock),
+            description=description,
+            is_available=is_available,
+            image=image if image else None
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Fish product created successfully'})
+        
+    except Exception as e:
+        logger.error(f'Admin fish add error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_fish_edit(request, fish_id):
+    """API endpoint to edit fish product"""
+    try:
+        from .models import Fish, FishCategory
+        
+        fish = get_object_or_404(Fish, id=fish_id)
+        
+        # Handle form data
+        if request.content_type.startswith('multipart/form-data'):
+            name = request.POST.get('name', fish.name)
+            category_id = request.POST.get('category', fish.category.id)
+            price = request.POST.get('price', fish.price)
+            stock = request.POST.get('stock', fish.stock)
+            description = request.POST.get('description', fish.description)
+            is_available = request.POST.get('is_available', str(fish.is_available)) == 'True'
+            image = request.FILES.get('image')
+            
+            # Update fields
+            if name != fish.name:
+                fish.name = name
+            
+            if category_id != str(fish.category.id):
+                fish.category = get_object_or_404(FishCategory, id=category_id)
+            
+            fish.price = float(price)
+            fish.stock = int(stock)
+            fish.description = description
+            fish.is_available = is_available
+            
+            if image:
+                fish.image = image
+            
+            fish.save()
+            
+            return JsonResponse({'success': True, 'message': 'Fish product updated successfully'})
+        
+        # Handle JSON data for GET requests
+        return JsonResponse({
+            'success': True,
+            'fish': {
+                'id': fish.id,
+                'name': fish.name,
+                'category': fish.category.id,
+                'price': str(fish.price),
+                'stock': fish.stock,
+                'description': fish.description,
+                'is_available': fish.is_available
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f'Admin fish edit error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_fish_toggle_status(request, fish_id):
+    """API endpoint to toggle fish product status"""
+    try:
+        from .models import Fish
+        
+        fish = get_object_or_404(Fish, id=fish_id)
+        fish.is_available = not fish.is_available
+        fish.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Fish product {"shown" if fish.is_available else "hidden"} successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f'Admin fish toggle status error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_fish_delete(request, fish_id):
+    """API endpoint to delete fish product"""
+    try:
+        from .models import Fish
+        
+        fish = get_object_or_404(Fish, id=fish_id)
+        fish.delete()
+        
+        return JsonResponse({'success': True, 'message': 'Fish product deleted successfully'})
+        
+    except Exception as e:
+        logger.error(f'Admin fish delete error: {str(e)}', exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)})
 
 def logout_view(request):
     logout(request)
