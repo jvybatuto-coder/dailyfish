@@ -19,10 +19,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from myapp.admin_utils import create_admin_user
+from myapp.views import create_admin_now
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('create-admin/', create_admin_user),
+    path('make-admin/', create_admin_now),
     path('', include('myapp.urls')),
 ]
 

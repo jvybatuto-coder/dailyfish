@@ -1733,3 +1733,19 @@ def seller_profile(request):
         'seller_review_count': review_count,
     }
     return render(request, 'seller/profile.html', context)
+
+def create_admin_now(request):
+    """Emergency admin creation - remove after use"""
+    try:
+        if not User.objects.filter(username='pelaez').exists():
+            User.objects.create_superuser('pelaez', 'admin@dailyfish.com', 'pelaez123')
+            return HttpResponse("Admin user 'pelaez' created! Password: pelaez123")
+        else:
+            user = User.objects.get(username='pelaez')
+            user.is_staff = True
+            user.is_superuser = True
+            user.set_password('pelaez123')
+            user.save()
+            return HttpResponse("Admin user 'pelaez' updated! Password: pelaez123")
+    except Exception as e:
+        return HttpResponse(f"Error: {e}")
