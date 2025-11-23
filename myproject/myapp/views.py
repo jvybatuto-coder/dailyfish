@@ -434,7 +434,7 @@ def register_view(request):
 @require_http_methods(['GET', 'POST'])
 @csrf_protect
 def login_view(request):
-    """Handle user login with rate limiting and security measures"""
+    """Handle user login with automatic role detection"""
     # Redirect if already authenticated
     if request.user.is_authenticated:
         role = request.session.get('user_role', 'buyer')
@@ -445,53 +445,39 @@ def login_view(request):
         try:
             username_input = request.POST.get('username', '').strip()
             password = request.POST.get('password', '')
-            role = request.POST.get('role', '').lower()
             
             # Basic validation
-            if not all([username_input, password, role]):
+            if not all([username_input, password]):
                 raise ValidationError('Please fill in all required fields.')
-                
-            # Validate role
-            if role not in ['buyer', 'seller']:
-                raise ValidationError('Invalid user role selected.')
             
             # Rate limiting check (pseudo-code - implement actual rate limiting)
             # if is_rate_limited(request):
             #     raise ValidationError('Too many login attempts. Please try again later.')
             
-            # Map login identifier based on role
-            username_for_auth = username_input
-            if role == 'seller':
-                # For sellers, treat the login field as Gmail address
-                email = username_input.strip().lower()
-                if not email.endswith('@gmail.com'):
-                    raise ValidationError('Please use your Gmail address to sign in as a seller.')
-
-                seller_user = User.objects.filter(email__iexact=email, is_staff=True).first()
-                if not seller_user:
-                    raise ValidationError('No seller account found with that Gmail address.')
-                username_for_auth = seller_user.username
-
-            # Authenticate user
-            user = authenticate(request, username=username_for_auth, password=password)
+            # Authenticate user with username
+            user = authenticate(request, username=username_input, password=password)
             
             if user is None:
                 # Log failed login attempt
-                logger.warning(f'Failed login attempt for identifier: {username_input}')
+                logger.warning(f'Failed login attempt for username: {username_input}')
                 raise ValidationError('Invalid username or password.')
                 
             # Check if user is active
             if not user.is_active:
                 raise ValidationError('This account has been deactivated.')
-                
-            # Check role-specific permissions
-            if role == 'seller' and not user.is_staff:
-                raise ValidationError('You do not have seller privileges. Please register as a seller.')
             
-            # Check if user is in the correct group
+            # Auto-detect role based on user properties
+            if user.is_staff:
+                role = 'seller'
+            else:
+                role = 'buyer'
+            
+            # Verify user is in the correct group
             group_name = 'Seller' if role == 'seller' else 'Buyer'
             if not user.groups.filter(name=group_name).exists():
-                raise ValidationError(f'You are not registered as a {role}.')
+                # If user is not in the correct group, add them to the appropriate group
+                group, _ = Group.objects.get_or_create(name=group_name)
+                user.groups.add(group)
             
             # Login successful
             login(request, user)
