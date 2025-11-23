@@ -1759,3 +1759,78 @@ def create_admin_now(request):
             return HttpResponse("Admin user 'pelaez' updated! Password: pelaez123")
     except Exception as e:
         return HttpResponse(f"Error: {e}")
+
+@login_required
+def admin_dashboard(request):
+    """Admin dashboard view"""
+    # Check if user is admin/superuser
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('home')  # or show access denied page
+    
+    # Get dashboard data
+    from django.db.models import Count, Sum, Q
+    from datetime import date, timedelta
+    import calendar
+    
+    today = date.today()
+    
+    # Total Sales (placeholder - replace with actual calculations)
+    total_sales = 12540.00  # This should come from your Order model
+    
+    # Total Orders Today
+    orders_today = 24  # This should come from your Order model
+    
+    # Total Sellers
+    total_sellers = User.objects.filter(groups__name='seller').count() or 156
+    
+    # Low Stock Alerts (placeholder - replace with actual Product query)
+    low_stock_alerts = 7  # This should come from your Product model
+    
+    # Recent Orders (placeholder - replace with actual query)
+    recent_orders = [
+        {
+            'id': '#ORD-001',
+            'buyer_name': 'John Smith',
+            'total': 2450.00,
+            'status': 'completed',
+            'date': today.strftime('%b %d, %Y')
+        },
+        {
+            'id': '#ORD-002', 
+            'buyer_name': 'Maria Garcia',
+            'total': 1890.00,
+            'status': 'pending',
+            'date': today.strftime('%b %d, %Y')
+        },
+        {
+            'id': '#ORD-003',
+            'buyer_name': 'David Chen', 
+            'total': 3200.00,
+            'status': 'completed',
+            'date': (today - timedelta(days=1)).strftime('%b %d, %Y')
+        },
+        {
+            'id': '#ORD-004',
+            'buyer_name': 'Sarah Johnson',
+            'total': 980.00,
+            'status': 'cancelled', 
+            'date': (today - timedelta(days=1)).strftime('%b %d, %Y')
+        },
+        {
+            'id': '#ORD-005',
+            'buyer_name': 'Michael Brown',
+            'total': 4020.00,
+            'status': 'pending',
+            'date': (today - timedelta(days=2)).strftime('%b %d, %Y')
+        }
+    ]
+    
+    context = {
+        'total_sales': total_sales,
+        'orders_today': orders_today,
+        'total_sellers': total_sellers,
+        'low_stock_alerts': low_stock_alerts,
+        'recent_orders': recent_orders,
+    }
+    
+    return render(request, 'admin_dashboard.html', context)

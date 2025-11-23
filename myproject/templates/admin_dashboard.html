@@ -712,7 +712,7 @@ body {
                             ₱
                         </div>
                     </div>
-                    <div class="stat-value">₱12,540.00</div>
+                    <div class="stat-value">₱{{ total_sales|floatformat:2 }}</div>
                     <div class="stat-change positive">+12.5% from yesterday</div>
                 </div>
 
@@ -723,7 +723,7 @@ body {
                             📦
                         </div>
                     </div>
-                    <div class="stat-value">24</div>
+                    <div class="stat-value">{{ orders_today }}</div>
                     <div class="stat-change positive">+8% from yesterday</div>
                 </div>
 
@@ -734,7 +734,7 @@ body {
                             👥
                         </div>
                     </div>
-                    <div class="stat-value">156</div>
+                    <div class="stat-value">{{ total_sellers }}</div>
                     <div class="stat-change positive">+3 new this week</div>
                 </div>
 
@@ -745,7 +745,7 @@ body {
                             ⚠️
                         </div>
                     </div>
-                    <div class="stat-value">7</div>
+                    <div class="stat-value">{{ low_stock_alerts }}</div>
                     <div class="stat-change negative">Requires attention</div>
                 </div>
             </div>
@@ -800,41 +800,15 @@ body {
                             </tr>
                         </thead>
                         <tbody>
+                            {% for order in recent_orders %}
                             <tr>
-                                <td>#ORD-001</td>
-                                <td>John Smith</td>
-                                <td>₱2,450.00</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td>Nov 23, 2025</td>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.buyer_name }}</td>
+                                <td>₱{{ order.total|floatformat:2 }}</td>
+                                <td><span class="status-badge {{ order.status }}">{{ order.status|title }}</span></td>
+                                <td>{{ order.date }}</td>
                             </tr>
-                            <tr>
-                                <td>#ORD-002</td>
-                                <td>Maria Garcia</td>
-                                <td>₱1,890.00</td>
-                                <td><span class="status-badge pending">Pending</span></td>
-                                <td>Nov 23, 2025</td>
-                            </tr>
-                            <tr>
-                                <td>#ORD-003</td>
-                                <td>David Chen</td>
-                                <td>₱3,200.00</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td>Nov 22, 2025</td>
-                            </tr>
-                            <tr>
-                                <td>#ORD-004</td>
-                                <td>Sarah Johnson</td>
-                                <td>₱980.00</td>
-                                <td><span class="status-badge cancelled">Cancelled</span></td>
-                                <td>Nov 22, 2025</td>
-                            </tr>
-                            <tr>
-                                <td>#ORD-005</td>
-                                <td>Michael Brown</td>
-                                <td>₱4,020.00</td>
-                                <td><span class="status-badge pending">Pending</span></td>
-                                <td>Nov 21, 2025</td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
