@@ -401,17 +401,17 @@
                     <a href="{% url 'fish_list' %}" class="btn btn-primary">Continue Shopping</a>
                 </div>
 
-                {% if seller_user %}
+                {% if admin_user %}
                 <div style="margin-top:2rem;">
-                    <h3 class="section-title">Message Seller</h3>
+                    <h3 class="section-title">Message Admin</h3>
                     <form method="post" action="{% url 'send_message' %}" style="display:grid; gap:0.5rem;">
                         {% csrf_token %}
-                        <input type="hidden" name="recipient" value="{{ seller_user.username }}">
+                        <input type="hidden" name="recipient" value="{{ admin_user.username }}">
                         <input type="hidden" name="message_type" value="product">
                         <label for="subject" style="font-weight:600; color:#333;">Subject</label>
                         <input id="subject" name="subject" value="Order #{{ order.id }} Inquiry" style="padding:0.6rem; border:1px solid #e9ecef; border-radius:8px;" required>
                         <label for="content" style="font-weight:600; color:#333;">Message</label>
-                        <textarea id="content" name="content" rows="4" placeholder="Write your message to the seller..." style="padding:0.6rem; border:1px solid #e9ecef; border-radius:8px;" required></textarea>
+                        <textarea id="content" name="content" rows="4" placeholder="Write your message to the admin..." style="padding:0.6rem; border:1px solid #e9ecef; border-radius:8px;" required></textarea>
                         <div>
                             <button type="submit" class="btn btn-primary">Send Message</button>
                         </div>

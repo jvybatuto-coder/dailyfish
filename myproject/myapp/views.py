@@ -1204,12 +1204,12 @@ def order_detail(request, order_id):
     if not request.GET.get('no_message'):
         messages.success(request, f'Order #{order.id} placed successfully! Your order is being processed.')
     
-    # Pick a default seller (first staff user) to route buyer messages
-    seller_user = User.objects.filter(is_staff=True).order_by('id').first()
+    # Pick a default admin (first staff user) to route buyer messages
+    admin_user = User.objects.filter(is_staff=True).order_by('id').first()
     
     context = {
         'order': order,
-        'seller_user': seller_user,
+        'admin_user': admin_user,
     }
     return render(request, 'order_detail_individual.html', context)
 
@@ -1432,7 +1432,7 @@ def user_orders_data(request):
 # --- Messaging System Views ---
 @login_required
 def message_center(request):
-    """Message center for both buyers and sellers"""
+    """Message center for buyers and admin"""
     user_role = request.session.get('user_role')
     
     # Get conversations (messages where user is sender or recipient)
@@ -1449,54 +1449,6 @@ def message_center(request):
         'user_role': user_role,
     }
     return render(request, 'message_center.html', context)
-
-
-@login_required
-@user_passes_test(lambda u: u.groups.filter(name='Seller').exists())
-def seller_messages(request):
-    """
-    Message center specifically for sellers
-    """
-    # Get messages where the seller is either the sender or recipient
-    messages = Message.objects.filter(
-        Q(sender=request.user) | Q(recipient=request.user)
-    ).order_by('-created_at')
-    
-    # Mark messages as read when viewed
-    unread_messages = messages.filter(recipient=request.user, is_read=False)
-    unread_messages.update(is_read=True)
-    
-    # Get unread count
-    unread_count = Message.objects.filter(recipient=request.user, is_read=False).count()
-    
-    context = {
-        'messages': messages,
-        'unread_count': unread_count,
-    }
-    return render(request, 'seller/messages.html', context)
-
-
-@login_required
-@user_passes_test(lambda u: u.groups.filter(name='Seller').exists())
-def seller_notifications(request):
-    """List notifications for the current seller.
-
-    For now we reuse the Message model as notification source, showing
-    all messages where the seller is sender or recipient, newest first.
-    """
-    notifications = Message.objects.filter(
-        Q(sender=request.user) | Q(recipient=request.user)
-    ).order_by('-created_at')
-
-    unread_notifications_count = notifications.filter(
-        recipient=request.user, is_read=False
-    ).count()
-
-    context = {
-        'notifications': notifications,
-        'unread_notifications_count': unread_notifications_count,
-    }
-    return render(request, 'seller/notifications.html', context)
 
 
 @login_required
@@ -1556,10 +1508,9 @@ def view_message(request, message_id):
     
     context = {
         'message': message,
-        'thread_messages': thread_messages,
-        'is_seller': hasattr(request.user, 'sellerprofile'),
+        'replies': thread_messages,
     }
-    return render(request, 'seller/message_detail.html', context)
+    return render(request, 'message_detail.html', context)
 
 
 @login_required
@@ -1622,13 +1573,13 @@ def order_feedback(request, order_id):
                 rating=int(rating),
                 comment=comment
             )
-            # Auto-create a message thread to the seller so the buyer can track it
-            seller_user = User.objects.filter(is_staff=True).order_by('id').first()
-            if seller_user:
+            # Auto-create a message thread to the admin so the buyer can track it
+            admin_user = User.objects.filter(is_staff=True).order_by('id').first()
+            if admin_user:
                 try:
                     Message.objects.create(
                         sender=request.user,
-                        recipient=seller_user,
+                        recipient=admin_user,
                         message_type='product',
                         subject=f'Feedback for Order #{order.id}',
                         content=f'Rating: {int(rating)}\nComment: {comment or "(no comment)"}'
@@ -1647,433 +1598,3 @@ def order_feedback(request, order_id):
         'order': order,
     }
     return render(request, 'order_feedback.html', context)
-
-
-# =============================
-# Seller-facing views (DailyFish)
-# =============================
-
-
-@login_required
-def seller_dashboard(request):
-    """Seller dashboard for DailyFish staff sellers.
-    
-    Special access for jvyboy@gmail.com to see all products and orders.
-    Other sellers see limited view of their own data only.
-    """
-    if not request.user.is_staff:
-        return redirect('home')
-
-    # Check if this is the special seller account
-    is_special_seller = request.user.email == 'jvyboy@gmail.com'
-    
-    if is_special_seller:
-        # Special seller gets ALL products and orders from the system
-        all_products = Fish.objects.all().order_by('-updated_at')
-        
-        # Get all completed orders from the system
-        base_order_items = OrderItem.objects.filter(
-            order__status='completed',
-        ).select_related('order', 'fish', 'order__user')
-        
-        # Available years for filtering (all orders in system)
-        available_years = (
-            base_order_items
-            .values_list('order__created_at__year', flat=True)
-            .distinct()
-        )
-        
-        total_products = all_products.count()
-        active_products = all_products.filter(is_available=True).count()
-        low_stock_products = all_products.filter(is_available=True, stock_kg__lte=Decimal('5.00'))
-        
-        context = {
-            'is_special_seller': True,
-            'seller_name': request.user.username,
-            'fish_list': all_products,
-            'total_products': total_products,
-            'active_products': active_products,
-            'low_stock_products': low_stock_products,
-            'base_order_items': base_order_items,
-            'available_years': sorted(available_years, reverse=True),
-        }
-    else:
-        # Regular sellers get their own products and orders only
-        # Assign any fish without a seller to the current user
-        no_seller_fish = Fish.objects.filter(seller__isnull=True)
-        if no_seller_fish.exists():
-            print(f"DEBUG: Found {no_seller_fish.count()} fish with no seller. Assigning to {request.user.username}")
-            no_seller_fish.update(seller=request.user)
-        
-        # Get all fish products for this seller (including newly assigned ones)
-        seller_fish = Fish.objects.filter(seller=request.user)
-        print(f"DEBUG: Total fish for seller {request.user.username}: {seller_fish.count()}")
-        for fish in seller_fish[:5]:  # Print first 5 fish for debugging
-            print(f"  - {fish.name} (ID: {fish.id}, Available: {fish.is_available})")
-        
-        total_products = seller_fish.count()
-        active_products = seller_fish.filter(is_available=True).count()
-        low_stock_products = seller_fish.filter(is_available=True, stock_kg__lte=Decimal('5.00'))
-
-        # Base queryset of completed order items containing this seller's fish
-        base_order_items = OrderItem.objects.filter(
-            fish__seller=request.user,
-            order__status='completed',
-        ).select_related('order', 'fish')
-
-        # Available years for filtering (distinct years where this seller has completed orders)
-        available_years = (
-            base_order_items
-            .values_list('order__created_at__year', flat=True)
-            .distinct()
-        )
-        
-        context = {
-            'is_special_seller': False,
-            'seller_name': request.user.username,
-            'total_products': total_products,
-            'active_products': active_products,
-            'low_stock_products': low_stock_products,
-            'base_order_items': base_order_items,
-            'available_years': sorted(available_years, reverse=True),
-        }
-
-    # Determine period filter for orders (day, month, year)
-    period = request.GET.get('period', 'day')
-    now_dt = timezone.now()
-    start_dt = None
-    end_dt = None
-
-    # Optional explicit year/month parameters for month/year views
-    try:
-        selected_year = int(request.GET.get('year', now_dt.year))
-    except (TypeError, ValueError):
-        selected_year = now_dt.year
-
-    try:
-        selected_month = int(request.GET.get('month', now_dt.month))
-    except (TypeError, ValueError):
-        selected_month = now_dt.month
-
-    if period == 'day':
-        start_dt = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        period_label = 'Today'
-    elif period == 'month':
-        # Clamp month and year to valid ranges
-        if selected_month < 1 or selected_month > 12:
-            selected_month = now_dt.month
-        start_dt = now_dt.replace(year=selected_year, month=selected_month, day=1, hour=0, minute=0, second=0, microsecond=0)
-        if selected_month == 12:
-            end_dt = start_dt.replace(year=selected_year + 1, month=1)
-        else:
-            end_dt = start_dt.replace(month=selected_month + 1)
-        period_label = start_dt.strftime('%B %Y')
-    elif period == 'year':
-        start_dt = now_dt.replace(year=selected_year, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_dt = start_dt.replace(year=selected_year + 1)
-        period_label = str(selected_year)
-    else:
-        # Fallback to showing all time if an unexpected value is provided
-        period = 'all'
-        period_label = 'All Time'
-
-    # Apply date filtering to the base queryset when a range is defined
-    seller_order_items = base_order_items
-    if start_dt is not None:
-        seller_order_items = seller_order_items.filter(order__created_at__gte=start_dt)
-    if end_dt is not None:
-        seller_order_items = seller_order_items.filter(order__created_at__lt=end_dt)
-
-    recent_orders = seller_order_items.order_by('-order__created_at')[:5]
-
-    total_sales = sum(item.total_price for item in seller_order_items)
-
-    # Add common context variables
-    context.update({
-        'period': period,
-        'period_label': period_label,
-        'selected_year': selected_year,
-        'selected_month': selected_month,
-        'recent_orders': recent_orders,
-        'total_sales': total_sales,
-    })
-
-    return render(request, 'seller/dashboard.html', context)
-
-
-@login_required
-def seller_products(request):
-    """List all fish products for the current DailyFish seller."""
-    if not request.user.is_staff:
-        return redirect('home')
-
-    # Show all products if user is staff, otherwise filter by seller
-    if request.user.is_superuser:
-        seller_fish = Fish.objects.all().order_by('-created_at')
-    else:
-        seller_fish = Fish.objects.filter(seller=request.user).order_by('-created_at')
-    
-    categories = FishCategory.objects.all()
-
-    context = {
-        'seller_name': request.user.username,
-        'fish_list': seller_fish,
-        'categories': categories,
-        'is_superuser': request.user.is_superuser
-    }
-    return render(request, 'seller/products.html', context)
-
-
-@login_required
-def seller_product_create(request):
-    """Create a new fish product for the current DailyFish seller."""
-    if not request.user.is_staff:
-        return redirect('home')
-
-    categories = FishCategory.objects.all()
-
-    if request.method == 'POST':
-        name = (request.POST.get('name') or '').strip()
-        description = (request.POST.get('description') or '').strip()
-        category_id = request.POST.get('category')
-        price_raw = (request.POST.get('price_per_kg') or '').strip()
-        stock_raw = (request.POST.get('stock_kg') or '').strip()
-        image = request.FILES.get('image')
-        image_url = (request.POST.get('image_url') or '').strip()
-
-        if not name or not category_id or not price_raw or not stock_raw:
-            messages.error(request, 'Please fill in all required fields for the new fish.')
-            return render(
-                request,
-                'seller/product_form.html',
-                {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
-            )
-
-        try:
-            category = FishCategory.objects.get(id=category_id)
-            price = Decimal(price_raw)
-            stock = Decimal(stock_raw)
-        except (FishCategory.DoesNotExist, InvalidOperation):
-            messages.error(request, 'Invalid category, price, or stock value.')
-            return render(
-                request,
-                'seller/product_form.html',
-                {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
-            )
-
-        fish = Fish(
-            name=name,
-            description=description,
-            category=category,
-            seller=request.user,
-            price_per_kg=price,
-            stock_kg=stock,
-            is_available=True,
-        )
-
-        if image:
-            fish.image = image
-        elif image_url:
-            fish.image_url = image_url
-
-        fish.save()
-        messages.success(request, f'Seller product "{fish.name}" has been created successfully.')
-        return redirect('seller_products')
-
-    return render(
-        request,
-        'seller/product_form.html',
-        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
-    )
-
-
-@login_required
-def seller_product_edit(request, fish_id):
-    """Edit an existing fish product owned by the current DailyFish seller."""
-    if not request.user.is_staff:
-        return redirect('home')
-
-    # Superusers can edit any fish; regular staff can edit only their own
-    if request.user.is_superuser:
-        fish = get_object_or_404(Fish, id=fish_id)
-    else:
-        fish = get_object_or_404(Fish, id=fish_id, seller=request.user)
-    categories = FishCategory.objects.all()
-
-    if request.method == 'POST':
-        name = (request.POST.get('name') or '').strip()
-        description = (request.POST.get('description') or '').strip()
-        category_id = request.POST.get('category')
-        price_raw = (request.POST.get('price_per_kg') or '').strip()
-        stock_raw = (request.POST.get('stock_kg') or '').strip()
-        image = request.FILES.get('image')
-        image_url = (request.POST.get('image_url') or '').strip()
-
-        if not name or not category_id or not price_raw or not stock_raw:
-            messages.error(request, 'Please fill in all required fields for the fish.')
-        else:
-            try:
-                category = FishCategory.objects.get(id=category_id)
-                price = Decimal(price_raw)
-                stock = Decimal(stock_raw)
-            except (FishCategory.DoesNotExist, InvalidOperation):
-                messages.error(request, 'Invalid category, price, or stock value.')
-            else:
-                fish.name = name
-                fish.description = description
-                fish.category = category
-                fish.price_per_kg = price
-                fish.stock_kg = stock
-
-                if image:
-                    fish.image = image
-                    fish.image_url = ''
-                elif image_url:
-                    fish.image_url = image_url
-
-                fish.save()
-                messages.success(request, f'Seller product "{fish.name}" has been updated successfully.')
-                return redirect('seller_products')
-
-    context = {
-        'seller_name': request.user.username,
-        'fish': fish,
-        'categories': categories,
-        'mode': 'edit',
-    }
-    return render(request, 'seller/product_form.html', context)
-
-
-@login_required
-def seller_product_delete(request, fish_id):
-    """Soft-delete a fish product for the current DailyFish seller by marking it unavailable."""
-    if not request.user.is_staff:
-        return redirect('home')
-
-    fish = get_object_or_404(Fish, id=fish_id, seller=request.user)
-
-    if request.method == 'POST':
-        fish.is_available = False
-        fish.stock_kg = Decimal('0.00')
-        fish.save()
-        messages.success(request, f'Seller product "{fish.name}" has been removed from the marketplace.')
-    else:
-        messages.error(request, 'Invalid request method for deleting a product.')
-
-    return redirect('seller_products')
-
-
-@login_required
-def seller_orders(request):
-    """View and manage all orders (same set as shown in the Django admin Order list)."""
-    if not request.user.is_staff:
-        return redirect('home')
-
-    # Show all orders instead of only those containing this seller's fish
-    orders = (
-        Order.objects.all()
-        .select_related('user')
-        .prefetch_related('items__fish')
-        .order_by('-created_at')
-    )
-
-    status_filter = request.GET.get('status', '')
-    if status_filter:
-        orders = orders.filter(status=status_filter)
-
-    if request.method == 'POST':
-        order_id = request.POST.get('order_id')
-        new_status = request.POST.get('status')
-
-        if order_id and new_status:
-            try:
-                order = orders.get(id=order_id)
-            except Order.DoesNotExist:
-                messages.error(request, 'Order not found or does not belong to this seller.')
-            else:
-                valid_statuses = {choice[0] for choice in Order.STATUS_CHOICES}
-                if new_status in valid_statuses:
-                    order.status = new_status
-                    order.save()
-                    messages.success(
-                        request,
-                        f'Order #{order.id} status updated to {order.get_status_display()}.',
-                    )
-                else:
-                    messages.error(request, 'Invalid order status selected.')
-
-        return redirect('seller_orders')
-
-    context = {
-        'seller_name': request.user.username,
-        'orders': orders,
-        'status_choices': Order.STATUS_CHOICES,
-    }
-    return render(request, 'seller/orders.html', context)
-
-
-@login_required
-def seller_profile(request):
-    """Basic seller profile page for DailyFish staff sellers."""
-    if not request.user.is_staff:
-        return redirect('home')
-
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
-
-    if request.method == 'POST':
-        request.user.first_name = request.POST.get('first_name', '').strip()
-        request.user.last_name = request.POST.get('last_name', '').strip()
-        request.user.email = request.POST.get('email', '').strip()
-        request.user.save()
-
-        profile.details = request.POST.get('details', '').strip()
-        profile.barangay = request.POST.get('barangay', '').strip()
-        profile.municipality = request.POST.get('municipality', '').strip()
-        profile.province = request.POST.get('province', '').strip()
-        profile.country = request.POST.get('country', '').strip()
-        profile.phone_number = request.POST.get('phone_number', '').strip()
-        profile.store_name = request.POST.get('store_name', '').strip()
-
-        # Optional ID verification update
-        id_file = request.FILES.get('id_verification')
-        if id_file:
-            try:
-                upload_path = handle_uploaded_file(id_file, 'seller_ids')
-                profile.id_verification = upload_path
-            except ValidationError as e:
-                messages.error(request, f'ID verification error: {e.messages[0]}')
-
-        profile.save()
-
-        messages.success(request, 'Seller profile information has been updated.')
-        return redirect('seller_profile')
-
-    # Aggregate total quantity sold across all completed orders containing this seller's fish
-    seller_items_qs = OrderItem.objects.filter(
-        fish__seller=request.user,
-        order__status='completed',
-    )
-    total_sold_kg = seller_items_qs.aggregate(total_sold=Sum('quantity_kg'))['total_sold'] or Decimal('0')
-
-    # Aggregate rating and review count for this seller across all feedback on orders
-    seller_feedback = OrderFeedback.objects.filter(
-        order__items__fish__seller=request.user,
-        order__status='completed',
-    ).aggregate(
-        avg_rating=Avg('rating'),
-        review_count=Count('id'),
-    )
-    avg_rating = seller_feedback['avg_rating'] or 0
-    review_count = seller_feedback['review_count'] or 0
-
-    context = {
-        'seller_name': request.user.username,
-        'profile': profile,
-        'seller_store_name': getattr(profile, 'store_name', '') or request.user.username,
-        'seller_email': request.user.email,
-        'seller_phone': getattr(profile, 'phone_number', ''),
-        'seller_total_sold_kg': total_sold_kg,
-        'seller_avg_rating': avg_rating,
-        'seller_review_count': review_count,
-    }
-    return render(request, 'seller/profile.html', context)

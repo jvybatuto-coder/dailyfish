@@ -19,7 +19,6 @@ class Fish(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     category = models.ForeignKey(FishCategory, on_delete=models.CASCADE, related_name='fish')
-    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fish_products', null=True, blank=True)
     price_per_kg = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     stock_kg = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
     image = models.ImageField(upload_to='fish_images/', blank=True, null=True)
