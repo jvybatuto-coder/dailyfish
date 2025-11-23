@@ -603,8 +603,8 @@
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        'Content-Type': 'application/json',
-                    },
+                        'Content-Type': 'application/json'
+                    }
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -623,8 +623,8 @@
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        'Content-Type': 'application/json',
-                    },
+                        'Content-Type': 'application/json'
+                    }
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -653,14 +653,14 @@
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     username: document.getElementById('username').value,
                     email: document.getElementById('email').value,
                     password: document.getElementById('password').value,
-                    is_active: document.getElementById('is_active').value === 'true',
-                }),
+                    is_active: document.getElementById('is_active').value === 'true'
+                })
             })
             .then(response => response.json())
             .then(data => {
