@@ -708,6 +708,413 @@
                 gap: 2rem;
             }
         }
+
+        /* Professional Carousel Styles */
+        .carousel-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .carousel-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            position: relative;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Banner Slide */
+        .banner-slide {
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .banner-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.8), rgba(0, 0, 0, 0.6));
+        }
+
+        .banner-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 2;
+        }
+
+        .banner-logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .banner-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .banner-subtitle {
+            font-size: 1.1rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        /* About Slide */
+        .about-slide {
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        }
+
+        .about-slide-content {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .about-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), #c41e3a);
+            border-radius: 50%;
+            color: white;
+            font-size: 1.8rem;
+            box-shadow: 0 8px 25px rgba(230, 57, 70, 0.3);
+        }
+
+        .about-slide-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 2rem;
+        }
+
+        .about-slide-text {
+            margin-bottom: 3rem;
+        }
+
+        .about-slide-text p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+        }
+
+        .about-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        /* Video Slide */
+        .video-slide {
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: #000;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .about-video {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .video-overlay:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .video-overlay.hidden {
+            display: none;
+        }
+
+        .play-button {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            color: var(--primary);
+            font-size: 1.8rem;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .play-button:hover {
+            transform: scale(1.1);
+            background: white;
+        }
+
+        .video-info {
+            text-align: center;
+            color: white;
+            margin-top: 2rem;
+        }
+
+        .video-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .video-description {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        /* Navigation */
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: var(--primary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .carousel-nav:hover {
+            background: white;
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .carousel-nav.prev {
+            left: 1rem;
+        }
+
+        .carousel-nav.next {
+            right: 1rem;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(230, 57, 70, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot:hover {
+            background: rgba(230, 57, 70, 0.6);
+        }
+
+        .dot.active {
+            background: var(--primary);
+            transform: scale(1.2);
+        }
+
+        /* Carousel Responsive */
+        @media (max-width: 768px) {
+            .carousel-container {
+                padding: 1rem;
+            }
+
+            .banner-slide,
+            .about-slide,
+            .video-slide {
+                height: 400px;
+            }
+
+            .banner-title {
+                font-size: 2rem;
+            }
+
+            .banner-subtitle {
+                font-size: 1rem;
+            }
+
+            .banner-logo {
+                width: 80px;
+                height: 80px;
+            }
+
+            .about-slide {
+                padding: 2rem 1rem;
+            }
+
+            .about-slide-title {
+                font-size: 1.8rem;
+            }
+
+            .about-slide-text p {
+                font-size: 1rem;
+            }
+
+            .about-stats {
+                gap: 1.5rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .about-video {
+                height: 250px;
+            }
+
+            .play-button {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .video-title {
+                font-size: 1.5rem;
+            }
+
+            .video-description {
+                font-size: 1rem;
+            }
+
+            .carousel-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 0.9rem;
+            }
+
+            .carousel-nav.prev {
+                left: 0.5rem;
+            }
+
+            .carousel-nav.next {
+                right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .banner-slide,
+            .about-slide,
+            .video-slide {
+                height: 350px;
+            }
+
+            .about-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .video-info {
+                margin-top: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -776,21 +1183,103 @@
 
     <!-- About Section -->
     <section id="about" class="about">
-        <div class="container">
-            <div class="about-image">
-                
+        <div class="section-title">
+            <h2>About DailyFish</h2>
+            <p>Discover our story, mission, and commitment to fresh seafood</p>
+        </div>
+        
+        <!-- Professional Horizontal Carousel -->
+        <div class="carousel-container">
+            <div class="carousel-wrapper">
+                <div class="carousel-track" id="carouselTrack">
+                    <!-- Slide 1: Banner with Logo -->
+                    <div class="carousel-slide active" data-slide="0">
+                        <div class="banner-slide">
+                            <div class="banner-background">
+                                <img src="{% static 'image/banner.png' %}" alt="DailyFish Banner" class="banner-image">
+                                <div class="banner-overlay"></div>
+                            </div>
+                            <div class="banner-content">
+                                <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo" class="banner-logo">
+                                <h3 class="banner-title">DailyFish</h3>
+                                <p class="banner-subtitle">Fresh Seafood, Delivered Daily</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 2: About Us Text -->
+                    <div class="carousel-slide" data-slide="1">
+                        <div class="about-slide">
+                            <div class="about-slide-content">
+                                <div class="about-icon">
+                                    <i class="fas fa-anchor"></i>
+                                </div>
+                                <h3 class="about-slide-title">About DailyFish</h3>
+                                <div class="about-slide-text">
+                                    <p>DailyFish connects local fishermen with seafood lovers, bringing the freshest catch from the ocean directly to your table.</p>
+                                    <p>Our mission is to support sustainable fishing practices while providing you with the highest quality seafood. With DailyFish, buying fresh fish is simple and hassle-free.</p>
+                                    <p>We're here to give you good quality seafood, honest service, and a smooth experience. Every order also helps support local fishermen and keeps our oceans protected.</p>
+                                </div>
+                                <div class="about-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number">2023</span>
+                                        <span class="stat-label">Founded</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">100+</span>
+                                        <span class="stat-label">Local Fishermen</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">100%</span>
+                                        <span class="stat-label">Fresh Guarantee</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 3: Video -->
+                    <div class="carousel-slide" data-slide="2">
+                        <div class="video-slide">
+                            <div class="video-container">
+                                <video 
+                                    id="aboutVideo"
+                                    class="about-video"
+                                    poster="{% static 'image/banner.png' %}"
+                                    controls
+                                    preload="metadata"
+                                    playsinline>
+                                    <source src="{% static 'video/video.mp4' %}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                                <div class="video-overlay" id="videoOverlay">
+                                    <div class="play-button" id="playButton">
+                                        <i class="fas fa-play"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="video-info">
+                                <h3 class="video-title">Our Story in Motion</h3>
+                                <p class="video-description">See how we bring the ocean's finest catch to your doorstep</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="about-content">
-                <h2>About DailyFish</h2>
-                <p>
-                    DailyFish connects local fishermen with seafood lovers, bringing the freshest catch from the ocean directly to your table. 
-                    Our mission is to support sustainable fishing practices while providing you with the highest quality seafood.
-                </p>
-                <p>
-                     With DailyFish, buying fresh fish is simple and hassle-free. We’re here to give you good quality seafood,
-                      honest service, and a smooth experience. Every order also helps support local fishermen and keeps our oceans protected.
-                </p>
-              
+            
+            <!-- Navigation Arrows -->
+            <button class="carousel-nav prev" id="prevBtn" aria-label="Previous slide">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="carousel-nav next" id="nextBtn" aria-label="Next slide">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <!-- Navigation Dots -->
+            <div class="carousel-dots" id="carouselDots">
+                <button class="dot active" data-slide="0" aria-label="Go to slide 1"></button>
+                <button class="dot" data-slide="1" aria-label="Go to slide 2"></button>
+                <button class="dot" data-slide="2" aria-label="Go to slide 3"></button>
             </div>
         </div>
     </section>
@@ -864,6 +1353,180 @@
                     });
                 }
             });
+        });
+
+        // Professional Carousel JavaScript
+        class DailyFishCarousel {
+            constructor() {
+                this.currentSlide = 0;
+                this.totalSlides = 3;
+                this.isAnimating = false;
+                this.autoPlayInterval = null;
+                this.touchStartX = 0;
+                this.touchEndX = 0;
+                
+                this.init();
+            }
+
+            init() {
+                this.track = document.getElementById('carouselTrack');
+                this.slides = document.querySelectorAll('.carousel-slide');
+                this.dots = document.querySelectorAll('.dot');
+                this.prevBtn = document.getElementById('prevBtn');
+                this.nextBtn = document.getElementById('nextBtn');
+                this.video = document.getElementById('aboutVideo');
+                this.videoOverlay = document.getElementById('videoOverlay');
+                this.playButton = document.getElementById('playButton');
+
+                this.bindEvents();
+                this.startAutoPlay();
+                this.updateSlidePositions();
+            }
+
+            bindEvents() {
+                // Navigation buttons
+                this.prevBtn.addEventListener('click', () => this.prevSlide());
+                this.nextBtn.addEventListener('click', () => this.nextSlide());
+
+                // Dot navigation
+                this.dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                });
+
+                // Touch/swipe support
+                this.track.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
+                this.track.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
+                this.track.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.track.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+
+                // Video controls
+                if (this.playButton) {
+                    this.playButton.addEventListener('click', () => this.playVideo());
+                }
+
+                // Pause autoplay on hover
+                this.track.addEventListener('mouseenter', () => this.stopAutoPlay());
+                this.track.addEventListener('mouseleave', () => this.startAutoPlay());
+
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') this.prevSlide();
+                    if (e.key === 'ArrowRight') this.nextSlide();
+                });
+            }
+
+            updateSlidePositions() {
+                const offset = -this.currentSlide * 100;
+                this.track.style.transform = `translateX(${offset}%)`;
+
+                // Update slide classes
+                this.slides.forEach((slide, index) => {
+                    slide.classList.toggle('active', index === this.currentSlide);
+                });
+
+                // Update dots
+                this.dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === this.currentSlide);
+                });
+
+                // Reset video when leaving video slide
+                if (this.currentSlide !== 2 && this.video) {
+                    this.pauseVideo();
+                }
+            }
+
+            goToSlide(slideIndex) {
+                if (this.isAnimating || slideIndex === this.currentSlide) return;
+                
+                this.isAnimating = true;
+                this.currentSlide = slideIndex;
+                this.updateSlidePositions();
+                
+                setTimeout(() => {
+                    this.isAnimating = false;
+                }, 500);
+            }
+
+            nextSlide() {
+                const nextSlide = (this.currentSlide + 1) % this.totalSlides;
+                this.goToSlide(nextSlide);
+            }
+
+            prevSlide() {
+                const prevSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+                this.goToSlide(prevSlide);
+            }
+
+            // Touch/Swipe handlers
+            handleTouchStart(e) {
+                this.touchStartX = e.touches[0].clientX;
+            }
+
+            handleTouchEnd(e) {
+                this.touchEndX = e.changedTouches[0].clientX;
+                this.handleSwipe();
+            }
+
+            handleMouseDown(e) {
+                this.touchStartX = e.clientX;
+                this.track.style.cursor = 'grabbing';
+            }
+
+            handleMouseUp(e) {
+                this.touchEndX = e.clientX;
+                this.track.style.cursor = 'grab';
+                this.handleSwipe();
+            }
+
+            handleSwipe() {
+                const swipeThreshold = 50;
+                const diff = this.touchStartX - this.touchEndX;
+
+                if (Math.abs(diff) > swipeThreshold) {
+                    if (diff > 0) {
+                        this.nextSlide(); // Swipe left
+                    } else {
+                        this.prevSlide(); // Swipe right
+                    }
+                }
+            }
+
+            // Video controls
+            playVideo() {
+                if (this.video) {
+                    this.video.play();
+                    this.videoOverlay.classList.add('hidden');
+                    this.stopAutoPlay(); // Stop autoplay when video is playing
+                }
+            }
+
+            pauseVideo() {
+                if (this.video) {
+                    this.video.pause();
+                    this.video.currentTime = 0;
+                    this.videoOverlay.classList.remove('hidden');
+                }
+            }
+
+            // Autoplay functionality
+            startAutoPlay() {
+                this.stopAutoPlay();
+                this.autoPlayInterval = setInterval(() => {
+                    this.nextSlide();
+                }, 5000); // Change slide every 5 seconds
+            }
+
+            stopAutoPlay() {
+                if (this.autoPlayInterval) {
+                    clearInterval(this.autoPlayInterval);
+                    this.autoPlayInterval = null;
+                }
+            }
+        }
+
+        // Initialize carousel when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new DailyFishCarousel();
         });
     </script>
 </body>
