@@ -575,22 +575,37 @@ def admin_fish(request):
         search_query = request.GET.get('search', '')
         category_filter = request.GET.get('category', '')
         
-        fish_products = Fish.objects.select_related('category').all()
+        # Get fish products with error handling
+        try:
+            fish_products = Fish.objects.select_related('category').all()
+        except Exception as e:
+            logger.error(f'Error fetching fish products: {str(e)}')
+            fish_products = Fish.objects.all()
         
+        # Apply search filter
         if search_query:
             fish_products = fish_products.filter(
                 Q(name__icontains=search_query) |
                 Q(description__icontains=search_query)
             )
         
+        # Apply category filter
         if category_filter:
             fish_products = fish_products.filter(category_id=category_filter)
         
-        # Get categories for filter dropdown
-        categories = FishCategory.objects.all()
+        # Get categories with error handling
+        try:
+            categories = FishCategory.objects.all()
+        except Exception as e:
+            logger.error(f'Error fetching categories: {str(e)}')
+            categories = []
         
-        # Get low stock products (≤5kg and >0 stock)
-        low_stock_products = Fish.objects.filter(stock_kg__gt=0, stock_kg__lte=5).select_related('category')
+        # Get low stock products with error handling
+        try:
+            low_stock_products = Fish.objects.filter(stock_kg__gt=0, stock_kg__lte=5).select_related('category')
+        except Exception as e:
+            logger.error(f'Error fetching low stock products: {str(e)}')
+            low_stock_products = []
         
         # Pagination
         paginator = Paginator(fish_products, 10)
@@ -609,7 +624,13 @@ def admin_fish(request):
         
     except Exception as e:
         logger.error(f'Admin fish error: {str(e)}', exc_info=True)
-        return render(request, 'admin_fish.html', {'fish_products': [], 'categories': [], 'low_stock_products': []})
+        # Return a basic page with empty data rather than failing
+        return render(request, 'admin_fish.html', {
+            'fish_products': [], 
+            'categories': [], 
+            'low_stock_products': [],
+            'error_message': 'There was an error loading the fish products. Please try again.'
+        })
 
 @require_POST
 @login_required

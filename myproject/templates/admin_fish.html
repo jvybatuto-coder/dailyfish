@@ -302,6 +302,12 @@
             color: #856404;
         }
 
+        .alert-danger {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -499,7 +505,15 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Low Stock Alerts -->
+            <!-- Error Message -->
+                {% if error_message %}
+                <div class="alert alert-danger" style="margin-bottom: 2rem;">
+                    <h4 style="margin-bottom: 1rem; color: #721c24;">❌ Error</h4>
+                    <p>{{ error_message }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Low Stock Alerts -->
                 {% if low_stock_products %}
                 <div class="alert alert-warning" style="margin-bottom: 2rem;">
                     <h4 style="margin-bottom: 1rem; color: #856404;">⚠️ Low Stock Alert</h4>
