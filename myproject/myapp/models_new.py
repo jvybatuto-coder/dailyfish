@@ -89,7 +89,7 @@ class Product(models.Model):
     default_image_used = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     is_active = models.BooleanField(default=True)
-    low_stock_threshold = models.IntegerField(default=5, default=5)
+    low_stock_threshold = models.IntegerField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
