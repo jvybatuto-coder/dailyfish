@@ -82,6 +82,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         
         .welcome-container {
@@ -94,7 +95,18 @@
             width: 100%;
             height: auto;
             max-width: 80px;
+            max-height: 80px;
+            object-fit: contain;
             transition: transform 0.3s ease;
+            display: block;
+        }
+        
+        .login-logo:hover {
+            transform: scale(1.05);
+        }
+        
+        .login-logo.error {
+            display: none;
         }
         
         .login-logo:hover {
@@ -179,13 +191,15 @@
         }
         .role-container {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: 1.5rem;
+            margin: 2rem 0;
             justify-content: center;
+            align-items: center;
             flex-wrap: wrap;
+            width: 100%;
         }
         .role-btn {
-            padding: 0.8rem 1.5rem;
+            padding: 1rem 2rem;
             border: 2px solid #e23b3b;
             background: white;
             color: #e23b3b;
@@ -194,11 +208,22 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 1rem;
-            min-width: 120px;
+            min-width: 140px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
         .role-btn:hover {
+            background: #e23b3b;
+            color: white;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(232, 25, 25, 0.2);
+            box-shadow: 0 4px 12px rgba(226, 59, 59, 0.3);
+        }
+        .role-btn.selected {
+            background: #e23b3b;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(226, 59, 59, 0.3);
         }
         .role-btn.active {
             background: #e23b3b;
@@ -364,15 +389,15 @@
             }
             
             .role-container {
-                flex-direction: row;
-                gap: 0.5rem;
+                gap: 1rem;
                 padding: 0 1rem;
+                margin: 1.5rem 0;
             }
             
             .role-btn {
-                padding: 0.6rem 1rem;
+                padding: 0.8rem 1.2rem;
                 font-size: 0.9rem;
-                min-width: 100px;
+                min-width: 110px;
             }
             
             .form-container {
@@ -533,7 +558,10 @@
     <div class="form-container">
         <div class="login-header">
             <div class="logo-container">
-                <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo" class="login-logo">
+                <img src="{% static 'image/fish.png' %}" alt="DailyFish Logo" class="login-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="logo-fallback" style="display: none; width: 80px; height: 80px; background: #e23b3b; border-radius: 50%; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5rem;">
+                    🐟
+                </div>
             </div>
             <div class="welcome-container">
                 <h2 class="welcome-text">Login to explore fresh fish hassle-free</h2>
