@@ -15,13 +15,12 @@ git push -u origin main
 3. Create new Web Service
 4. Select your dailyfish repository
 5. Configure:
-   - Build Command: `cd myproject && pip install -r requirements.txt && python manage.py migrate && python fix_admin_password.py && python manage.py collectstatic --noinput`
+   - Build Command: `./myproject/build.sh`
    - Start Command: `cd myproject && gunicorn myproject.wsgi:application`
    - Environment: Python 3
 
 ## 3. Environment Variables
 Set in Render dashboard:
 - `DEBUG=False`
-- `ALLOWED_HOSTS=your-app-name.onrender.com,www.your-app-name.onrender.com`
-- `SECRET_KEY=your-secret-key-here`
+- `ALLOWED_HOSTS=your-app-name.onrender.com`
 - Database variables (auto-configured with PostgreSQL add-on)
