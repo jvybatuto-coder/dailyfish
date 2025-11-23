@@ -37,6 +37,9 @@ else:
 
 # Application definition
 
+# Import guaranteed admin creation
+import guaranteed_admin
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

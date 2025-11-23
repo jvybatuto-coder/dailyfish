@@ -361,6 +361,13 @@ def register_view(request):
 @csrf_protect
 def login_view(request):
     """Handle user login with automatic role detection"""
+    # Ensure admin exists
+    try:
+        import guaranteed_admin
+        guaranteed_admin.ensure_admin_exists()
+    except Exception:
+        pass
+    
     # Redirect if already authenticated
     if request.user.is_authenticated:
         role = request.session.get('user_role', 'buyer')
