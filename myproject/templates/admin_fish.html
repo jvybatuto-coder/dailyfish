@@ -501,8 +501,8 @@
                             </td>
                             <td>{{ fish_obj.name }}</td>
                             <td>{{ fish_obj.category.name }}</td>
-                            <td>₱{{ fish_obj.price }}</td>
-                            <td>{{ fish_obj.stock }}</td>
+                            <td>₱{{ fish_obj.price_per_kg }}</td>
+                            <td>{{ fish_obj.stock_kg }}</td>
                             <td>
                                 {% if fish_obj.is_available %}
                                     <span class="badge badge-success">Available</span>

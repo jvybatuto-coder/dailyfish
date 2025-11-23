@@ -743,12 +743,12 @@ def admin_fish_add(request):
         
         category = get_object_or_404(FishCategory, id=category_id)
         
-        # Create fish product
+        # Create fish product with correct field names
         fish = Fish.objects.create(
             name=name,
             category=category,
-            price=float(price),
-            stock=int(stock),
+            price_per_kg=float(price),  # Correct field name
+            stock_kg=float(stock),       # Correct field name
             description=description,
             is_available=is_available,
             image=image if image else None
@@ -774,21 +774,21 @@ def admin_fish_edit(request, fish_id):
         if request.content_type.startswith('multipart/form-data'):
             name = request.POST.get('name', fish.name)
             category_id = request.POST.get('category', fish.category.id)
-            price = request.POST.get('price', fish.price)
-            stock = request.POST.get('stock', fish.stock)
+            price = request.POST.get('price', fish.price_per_kg)
+            stock = request.POST.get('stock', fish.stock_kg)
             description = request.POST.get('description', fish.description)
             is_available = request.POST.get('is_available', str(fish.is_available)) == 'True'
             image = request.FILES.get('image')
             
-            # Update fields
+            # Update fields with correct names
             if name != fish.name:
                 fish.name = name
             
             if category_id != str(fish.category.id):
                 fish.category = get_object_or_404(FishCategory, id=category_id)
             
-            fish.price = float(price)
-            fish.stock = int(stock)
+            fish.price_per_kg = float(price)  # Correct field name
+            fish.stock_kg = float(stock)       # Correct field name
             fish.description = description
             fish.is_available = is_available
             
@@ -806,8 +806,8 @@ def admin_fish_edit(request, fish_id):
                 'id': fish.id,
                 'name': fish.name,
                 'category': fish.category.id,
-                'price': str(fish.price),
-                'stock': fish.stock,
+                'price': str(fish.price_per_kg),  # Correct field name
+                'stock': str(fish.stock_kg),      # Correct field name
                 'description': fish.description,
                 'is_available': fish.is_available
             }
