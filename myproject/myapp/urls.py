@@ -29,7 +29,6 @@ urlpatterns = [
     path('admin/fish/<int:fish_id>/delete/', views.admin_fish_delete, name='admin_fish_delete'),
     
     # New Admin Product Management (Admin as Seller)
-    path('admin/products/', views_admin_products.admin_products_new, name='admin_products_new'),
     path('admin/products/', include(urls_admin_products)),
     
     path('location/select/', views.location_select, name='location_select'),
