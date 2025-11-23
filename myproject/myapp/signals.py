@@ -1,7 +1,7 @@
 from django.db.models.signals import post_migrate
-from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from .models import User
 import logging
 
 logger = logging.getLogger(__name__)

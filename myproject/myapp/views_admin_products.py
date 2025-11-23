@@ -10,8 +10,7 @@ import json
 import logging
 from datetime import datetime
 
-from .models import Fish, FishCategory
-from .models_new import Product, Category, User
+from .models import Fish, FishCategory, Product, Category, User
 
 logger = logging.getLogger(__name__)
 

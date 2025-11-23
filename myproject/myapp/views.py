@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
 from django.db import transaction, IntegrityError, DatabaseError
@@ -18,6 +18,8 @@ from django.views.decorators.cache import never_cache, cache_control
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.core.mail import send_mail, BadHeaderError
+
+from .models import User
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags, escape

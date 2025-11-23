@@ -147,5 +147,8 @@ LOGIN_URL = 'login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custom User Model
+AUTH_USER_MODEL = 'myapp.User'
+
 # Auto-create superuser on startup
 AUTO_CREATE_SUPERUSER = True
