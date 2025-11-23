@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models_new import Category, Product, Order, OrderItem, Cart, CartItem, Message, Feedback, ActivityLog
+from .models_new import Category, Product, OrderNew, OrderItemNew, CartNew, CartItemNew, MessageNew, Feedback, ActivityLog
 
 User = get_user_model()
 
@@ -54,40 +54,37 @@ class ProductSerializer(serializers.ModelSerializer):
         
         return value
 
-class OrderItemSerializer(serializers.ModelSerializer):
+class OrderItemNewSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     
     class Meta:
-        model = OrderItem
+        model = OrderItemNew
         fields = ['id', 'product', 'product_name', 'quantity_kg', 'price_per_kilo', 'subtotal']
 
-class OrderSerializer(serializers.ModelSerializer):
+class OrderNewSerializer(serializers.ModelSerializer):
     buyer_name = serializers.CharField(source='buyer.username', read_only=True)
-    items = OrderItemSerializer(many=True, read_only=True)
+    items = OrderItemNewSerializer(many=True, read_only=True)
     
     class Meta:
-        model = Order
-        fields = [
-            'id', 'buyer', 'buyer_name', 'order_number', 'status', 'total_amount',
-            'shipping_address', 'notes', 'items', 'created_at', 'updated_at'
-        ]
+        model = OrderNew
+        fields = ['id', 'buyer', 'buyer_name', 'order_number', 'status', 'total_amount', 'shipping_address', 'notes', 'items', 'created_at', 'updated_at']
         read_only_fields = ['id', 'order_number', 'buyer', 'created_at', 'updated_at']
 
-class CartItemSerializer(serializers.ModelSerializer):
+class CartItemNewSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.DecimalField(source='product.price_per_kilo', read_only=True, max_digits=10, decimal_places=2)
     
     class Meta:
-        model = CartItem
+        model = CartItemNew
         fields = ['id', 'product', 'product_name', 'quantity_kg', 'price_per_kilo', 'subtotal', 'added_at']
 
-class CartSerializer(serializers.ModelSerializer):
-    items = CartItemSerializer(many=True, read_only=True)
+class CartNewSerializer(serializers.ModelSerializer):
+    items = CartItemNewSerializer(many=True, read_only=True)
     total_amount = serializers.SerializerMethodField()
     item_count = serializers.SerializerMethodField()
     
     class Meta:
-        model = Cart
+        model = CartNew
         fields = ['id', 'buyer', 'is_active', 'last_updated', 'items', 'total_amount', 'item_count', 'created_at']
         read_only_fields = ['id', 'buyer', 'created_at']
     
@@ -97,24 +94,24 @@ class CartSerializer(serializers.ModelSerializer):
     def get_item_count(self, obj):
         return obj.item_count
 
-class MessageSerializer(serializers.ModelSerializer):
+class MessageNewSerializer(serializers.ModelSerializer):
     sender_name = serializers.CharField(source='sender.username', read_only=True)
     recipient_name = serializers.CharField(source='recipient.username', read_only=True)
     
     class Meta:
-        model = Message
+        model = MessageNew
         fields = ['id', 'sender', 'sender_name', 'recipient', 'recipient_name', 'subject', 'body', 'is_read', 'created_at']
         read_only_fields = ['id', 'sender', 'created_at']
 
 class FeedbackSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
-    order_number = serializers.CharField(source='order.order_number', read_only=True)
+    order_number = serializers.CharField(source='ordernew.order_number', read_only=True)
     
     class Meta:
         model = Feedback
         fields = [
-            'id', 'user', 'user_name', 'product', 'product_name', 'order', 'order_number',
+            'id', 'user', 'user_name', 'product', 'product_name', 'ordernew', 'order_number',
             'message', 'status', 'admin_response', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
@@ -140,6 +137,6 @@ class DashboardStatsSerializer(serializers.Serializer):
     out_of_stock_products = serializers.IntegerField()
     unread_messages = serializers.IntegerField()
     pending_feedback = serializers.IntegerField()
-    recent_orders = OrderSerializer(many=True)
+    recent_orders = OrderNewSerializer(many=True)
     top_products = ProductSerializer(many=True)
     recent_activities = ActivityLogSerializer(many=True)

@@ -5,7 +5,7 @@ from decimal import Decimal
 import random
 from datetime import datetime, timedelta
 
-from myapp.models_new import Category, Product, Order, OrderItem, Cart, CartItem, Message, Feedback, ActivityLog
+from myapp.models_new import Category, Product, OrderNew, OrderItemNew, CartNew, CartItemNew, MessageNew, Feedback, ActivityLog
 
 User = get_user_model()
 
@@ -174,7 +174,7 @@ class Command(BaseCommand):
             buyer = random.choice(buyers)
             
             # Create order
-            order = Order.objects.create(
+            order = OrderNew.objects.create(
                 buyer=buyer,
                 total_amount=Decimal('0.00'),
                 shipping_address=f'{random.randint(100, 999)} {random.choice(["Main St", "Oak Ave", "Elm St"])} {random.choice(["Manila", "Quezon City", "Makati"])}, Philippines',
@@ -192,7 +192,7 @@ class Command(BaseCommand):
                 subtotal = quantity * product.price_per_kilo
                 total += subtotal
                 
-                OrderItem.objects.create(
+                OrderItemNew.objects.create(
                     order=order,
                     product=product,
                     quantity_kg=quantity,
@@ -222,7 +222,7 @@ class Command(BaseCommand):
             recipient = random.choice([u for u in users if u != sender])
             message_data = random.choice(messages_data)
             
-            Message.objects.get_or_create(
+            MessageNew.objects.get_or_create(
                 sender=sender,
                 recipient=recipient,
                 subject=message_data['subject'],
@@ -238,7 +238,7 @@ class Command(BaseCommand):
         
         buyers = User.objects.filter(role='buyer')
         products = list(Product.objects.all())
-        orders = list(Order.objects.all())
+        orders = list(OrderNew.objects.all())
         
         feedback_messages = [
             'Excellent quality fish! Very fresh and well-packaged.',

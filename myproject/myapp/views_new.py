@@ -7,10 +7,10 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .models_new import Category, Product, Order, OrderItem, Cart, CartItem, Message, Feedback, ActivityLog
+from .models_new import Category, Product, OrderNew, OrderItemNew, CartNew, CartItemNew, MessageNew, Feedback, ActivityLog
 from .serializers_new import (
-    UserSerializer, CategorySerializer, ProductSerializer, OrderSerializer,
-    CartSerializer, CartItemSerializer, MessageSerializer, FeedbackSerializer,
+    UserSerializer, CategorySerializer, ProductSerializer, OrderNewSerializer,
+    CartNewSerializer, CartItemNewSerializer, MessageNewSerializer, FeedbackSerializer,
     ActivityLogSerializer, DashboardStatsSerializer
 )
 import logging
@@ -179,7 +179,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 class OrderViewSet(viewsets.ModelViewSet):
-    serializer_class = OrderSerializer
+    serializer_class = OrderNewSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'buyer']
@@ -225,13 +225,13 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response({'status': 'success', 'new_status': new_status})
 
 class CartViewSet(viewsets.ModelViewSet):
-    serializer_class = CartSerializer
+    serializer_class = CartNewSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if self.request.user.role == 'buyer':
-            return Cart.objects.filter(buyer=self.request.user, is_active=True)
-        return Cart.objects.none()
+            return CartNew.objects.filter(buyer=self.request.user, is_active=True)
+        return CartNew.objects.none()
 
     @action(detail=False, methods=['post'])
     def add_item(self, request):
@@ -323,15 +323,15 @@ class CartViewSet(viewsets.ModelViewSet):
             ip_address=request.META.get('REMOTE_ADDR')
         )
         
-        return Response(OrderSerializer(order).data)
+        return Response(OrderNewSerializer(order).data)
 
 class MessageViewSet(viewsets.ModelViewSet):
-    serializer_class = MessageSerializer
+    serializer_class = MessageNewSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return Message.objects.filter(
+        return MessageNew.objects.filter(
             Q(sender=user) | Q(recipient=user)
         ).select_related('sender', 'recipient')
 
@@ -432,7 +432,7 @@ def dashboard_stats(request):
         'out_of_stock_products': out_of_stock_products,
         'unread_messages': unread_messages,
         'pending_feedback': pending_feedback,
-        'recent_orders': OrderSerializer(recent_orders, many=True).data,
+        'recent_orders': OrderNewSerializer(recent_orders, many=True).data,
         'top_products': ProductSerializer(top_products, many=True).data,
         'recent_activities': ActivityLogSerializer(recent_activities, many=True).data,
     }
