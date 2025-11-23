@@ -42,7 +42,8 @@ from urllib.parse import urlparse, urljoin
 
 # Security
 from django.views.decorators.clickjacking import xframe_options_deny
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_safe
 from django.middleware.csrf import get_token
 
@@ -441,8 +442,7 @@ def register_view(request):
     # Handle GET request or failed POST
     return render(request, 'login.html', {'show_register': True})
 
-@require_http_methods(['GET', 'POST'])
-@csrf_protect
+@csrf_exempt
 def login_view(request):
     """Handle user login with rate limiting and security measures"""
     # Redirect if already authenticated

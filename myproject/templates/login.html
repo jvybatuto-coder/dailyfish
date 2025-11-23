@@ -1098,8 +1098,37 @@
             document.body.appendChild(container);
             return container;
         }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Ensure CSRF token is present
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                console.warn('CSRF token not found, adding it');
+                const form = document.getElementById('login-form');
+                if (form) {
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = 'csrfmiddlewaretoken';
+                    tokenInput.value = getCookie('csrftoken');
+                    form.appendChild(tokenInput);
+                }
+            }
+            
             // Hide role selection initially (only show for sign-up)
             const roleContainer = document.getElementById('role-container');
             roleContainer.style.display = 'none';
