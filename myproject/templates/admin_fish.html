@@ -512,13 +512,13 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn btn-secondary" onclick="editFish({{ fish_obj.id }})">Edit</button>
+                                    <button class="btn btn-secondary btn-edit" data-fish-id="{{ fish_obj.id }}">Edit</button>
                                     {% if fish_obj.is_available %}
-                                        <button class="btn btn-warning" onclick="toggleFishStatus({{ fish_obj.id }})">Hide</button>
+                                        <button class="btn btn-warning btn-toggle" data-fish-id="{{ fish_obj.id }}">Hide</button>
                                     {% else %}
-                                        <button class="btn btn-success" onclick="toggleFishStatus({{ fish_obj.id }})">Show</button>
+                                        <button class="btn btn-success btn-toggle" data-fish-id="{{ fish_obj.id }}">Show</button>
                                     {% endif %}
-                                    <button class="btn btn-danger" onclick="deleteFish({{ fish_obj.id }})">Delete</button>
+                                    <button class="btn btn-danger btn-delete" data-fish-id="{{ fish_obj.id }}">Delete</button>
                                 </div>
                             </td>
                         </tr>
@@ -718,6 +718,20 @@
                     alert('Error: ' + data.error);
                 }
             });
+        });
+
+        // Add event listeners for action buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-edit')) {
+                const fishId = e.target.getAttribute('data-fish-id');
+                editFish(fishId);
+            } else if (e.target.classList.contains('btn-toggle')) {
+                const fishId = e.target.getAttribute('data-fish-id');
+                toggleFishStatus(fishId);
+            } else if (e.target.classList.contains('btn-delete')) {
+                const fishId = e.target.getAttribute('data-fish-id');
+                deleteFish(fishId);
+            }
         });
 
         // Close modal when clicking outside
