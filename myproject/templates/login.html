@@ -337,15 +337,19 @@
         }
         .forgot-link {
             text-align: right;
-            margin-top: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
         }
         .forgot-link a {
             color: #e23b3b;
             text-decoration: none;
             font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
         .forgot-link a:hover {
             text-decoration: underline;
+            color: #c53232;
         }
         .form-section {
             position: absolute;
@@ -548,6 +552,76 @@
             color: #e23b3b;
         }
         
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.25rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            color: #e23b3b;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -563,9 +637,53 @@
 <body style="background: #f8f9fa; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; position: relative;">
     <!-- Gradient Background Elements -->
     <div class="gradient-bg">
-        <div class="interactive"></div>
-        <div class="interactive"></div>
-        <div class="interactive"></div>
+        <div class="interact"></div>
+    </div>
+    
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reset Password</h3>
+                <button class="modal-close" onclick="closeForgotPasswordModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: #4a5568;">Enter your email address and we'll send you instructions to reset your password.</p>
+                <form id="forgot-password-form" onsubmit="handleForgotPassword(event)">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="reset-email" class="form-label">Email Address</label>
+                        <input type="email" id="reset-email" name="email" class="form-input" required placeholder="Enter your email address">
+                    </div>
+                    <button type="submit" class="submit-btn">Send Reset Link</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reset Password</h3>
+                <button class="modal-close" onclick="closeForgotPasswordModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: #4a5568;">Enter your email address and we'll send you instructions to reset your password.</p>
+                <form id="forgot-password-form" onsubmit="handleForgotPassword(event)">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="reset-email" class="form-label">Email Address</label>
+                        <input type="email" id="reset-email" name="email" class="form-input" required placeholder="Enter your email address">
+                    </div>
+                    <button type="submit" class="submit-btn">Send Reset Link</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div class="interactive"></div>
     </div>
     <!-- Django Messages Display - Top Center -->
     {% if messages %}
@@ -638,7 +756,7 @@
                     <input type="password" id="login-password" name="password" class="form-input" required aria-label="Enter your password">
                 </div>
                 <div class="forgot-link">
-                    <a href="#" onclick="showError('Forgot password feature coming soon!')">Forgot Password?</a>
+                    <a href="#" onclick="openForgotPasswordModal(); return false;">Forgot Password?</a>
                 </div>
                 <button type="submit" class="submit-btn">Sign In</button>
             </form>
@@ -821,6 +939,58 @@
             isAnimating = false;
             console.log('Tab switching reset');
         }
+        
+        // Forgot Password Modal Functions
+        function openForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        }
+        
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                // Reset form
+                document.getElementById('forgot-password-form').reset();
+            }, 300);
+        }
+        
+        function handleForgotPassword(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('reset-email').value;
+            
+            // Show loading state
+            const submitBtn = event.target.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call (replace with actual implementation)
+            setTimeout(() => {
+                // Show success message
+                showNotification(`Password reset link sent to ${email}`, 'success');
+                
+                // Close modal
+                closeForgotPasswordModal();
+                
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
+        }
+        
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('forgotPasswordModal');
+            if (event.target === modal) {
+                closeForgotPasswordModal();
+            }
+        });
 
         function validatePasswordMatch() {
             const password = document.getElementById('register-password').value;
@@ -889,27 +1059,44 @@
         }
 
         function showError(message) {
-            const notificationContainer = document.getElementById('notification-container');
-            const notification = document.createElement('div');
-            notification.className = 'notification error';
-            notification.textContent = message;
-            notificationContainer.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 4000);
+            showNotification(message, 'error');
         }
 
-        function showSuccess(message) {
-            const notificationContainer = document.getElementById('notification-container');
+        function showNotification(message, type = 'success') {
+            // Create notification element
             const notification = document.createElement('div');
-            notification.className = 'notification success';
+            notification.className = `top-notification ${type}`;
             notification.textContent = message;
-            notificationContainer.appendChild(notification);
             
+            // Add to container
+            const container = document.querySelector('.top-notification-container') || createNotificationContainer();
+            container.appendChild(notification);
+            
+            // Auto remove after 5 seconds
             setTimeout(() => {
-                notification.remove();
-            }, 4000);
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 5000);
+        }
+        
+        function createNotificationContainer() {
+            const container = document.createElement('div');
+            container.className = 'top-notification-container';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1001;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            `;
+            document.body.appendChild(container);
+            return container;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
