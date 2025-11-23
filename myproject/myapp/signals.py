@@ -1,16 +1,40 @@
 from django.db.models.signals import post_migrate
 from django.contrib.auth.models import User
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+import logging
+
+logger = logging.getLogger(__name__)
 
 @receiver(post_migrate)
-def create_superuser(sender, **kwargs):
+def create_superuser_on_migrate(sender, **kwargs):
+    """
+    Automatically create superuser when migrations run
+    This ensures admin access is always available
+    """
     if sender.name == 'auth':
-        if not User.objects.filter(username='admin').exists():
-            User.objects.create_superuser(
-                username='admin',
-                email='admin@dailyfish.com',
-                password='admin123'
-            )
-            print("Superuser 'admin' created automatically!")
-        else:
-            print("Superuser 'admin' already exists!")
+        username = 'admin'
+        password = 'admin'
+        email = 'admin@dailyfish.com'
+        
+        try:
+            # Check if superuser already exists
+            if User.objects.filter(username=username).exists():
+                logger.info(f"Superuser '{username}' already exists")
+                # Update password to ensure it matches
+                user = User.objects.get(username=username)
+                user.set_password(password)
+                user.save()
+                logger.info(f"Updated password for existing superuser '{username}'")
+            else:
+                # Create new superuser
+                User.objects.create_superuser(
+                    username=username,
+                    email=email,
+                    password=password
+                )
+                logger.info(f"Created superuser '{username}' successfully")
+                
+        except Exception as e:
+            logger.error(f"Error creating superuser: {str(e)}")
+            # Don't raise exception to avoid breaking migrations

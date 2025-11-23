@@ -18,7 +18,7 @@ from django.contrib.auth.models import User
 def force_create_admin():
     """Force create admin by deleting existing and creating new"""
     username = 'admin'
-    password = 'admin123'
+    password = 'admin'
     email = 'admin@dailyfish.com'
     
     try:
