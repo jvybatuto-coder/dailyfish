@@ -539,8 +539,15 @@ def admin_users(request):
         from django.core.paginator import Paginator
         
         search_query = request.GET.get('search', '')
-        users = User.objects.filter(is_staff=False)
         
+        # Get users with error handling
+        try:
+            users = User.objects.filter(is_staff=False)
+        except Exception as e:
+            logger.error(f'Error fetching users: {str(e)}')
+            users = User.objects.none()
+        
+        # Apply search filter
         if search_query:
             users = users.filter(
                 Q(username__icontains=search_query) |
@@ -562,7 +569,13 @@ def admin_users(request):
         
     except Exception as e:
         logger.error(f'Admin users error: {str(e)}', exc_info=True)
-        return render(request, 'admin_users.html', {'users': User.objects.none()})
+        # Return a basic page with empty data rather than failing
+        return render(request, 'admin_users.html', {
+            'users': User.objects.none(), 
+            'is_paginated': False,
+            'page_obj': None,
+            'error_message': 'There was an error loading the users. Please try again.'
+        })
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
