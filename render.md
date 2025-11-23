@@ -15,7 +15,7 @@ git push -u origin main
 3. Create new Web Service
 4. Select your dailyfish repository
 5. Configure:
-   - Build Command: `cd myproject && pip install -r requirements.txt && python manage.py migrate && python fix_admin_password.py`
+   - Build Command: `cd myproject && pip install -r requirements.txt && python manage.py migrate && python fix_admin_password.py && python manage.py collectstatic --noinput`
    - Start Command: `cd myproject && gunicorn myproject.wsgi:application`
    - Environment: Python 3
 
