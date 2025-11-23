@@ -458,6 +458,57 @@
             .forgot-link a {
                 font-size: 0.8rem;
             }
+            
+            .top-notification {
+                min-width: 250px;
+                padding: 0.8rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Top Center Notifications */
+        .top-notification-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .top-notification {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            font-weight: 500;
+            min-width: 300px;
+            text-align: center;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .top-notification.success {
+            border-left: 4px solid #10b981;
+            color: #10b981;
+        }
+        
+        .top-notification.error {
+            border-left: 4px solid #e23b3b;
+            color: #e23b3b;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -468,15 +519,15 @@
         <div class="interactive"></div>
         <div class="interactive"></div>
     </div>
-    <div id="notification-container" class="notification-container"></div>
-    
-    <!-- Django Messages Display -->
+    <!-- Django Messages Display - Top Center -->
     {% if messages %}
-        {% for message in messages %}
-            <div class="notification {% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                {{ message }}
-            </div>
-        {% endfor %}
+        <div class="top-notification-container">
+            {% for message in messages %}
+                <div class="top-notification {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
     
     <div class="form-container">
@@ -489,8 +540,8 @@
             </div>
         </div>
         
-        <!-- Role Selection -->
-        <div class="role-container">
+        <!-- Role Selection - Only for Sign Up -->
+        <div class="role-container" id="role-container" style="display: none;">
             <div class="role-option">
                 <input type="radio" id="seller-role" name="role" value="seller" style="display: none;">
                 <label for="seller-role" class="role-btn" id="seller-btn" onclick="selectRole('seller')" aria-label="Select Seller role">
@@ -527,8 +578,6 @@
         <div id="signin-form" class="form-section active">
             <form method="post" id="login-form" action="{% url 'login' %}" onsubmit="return validateLoginForm()">
                 {% csrf_token %}
-                <input type="hidden" name="role" id="login-role" value="">
-                <div id="role-error" style="color: #e23b3b; margin-bottom: 1rem; display: none;">Please select a role (Seller or Buyer)</div>
                 <div class="form-group">
                     <label for="login-username" class="form-label" id="login-username-label">Username</label>
                     <input type="text" id="login-username" name="username" class="form-input" required aria-label="Enter your username" placeholder="Enter your username">
@@ -540,7 +589,7 @@
                 <div class="forgot-link">
                     <a href="#" onclick="showError('Forgot password feature coming soon!')">Forgot Password?</a>
                 </div>
-                <button type="submit" class="submit-btn" id="login-submit" disabled>Sign In</button>
+                <button type="submit" class="submit-btn">Sign In</button>
             </form>
         </div>
         
@@ -672,12 +721,18 @@
                 // Reset form validations
                 document.getElementById('login-form').reset();
                 document.getElementById('register-form').reset();
-                document.getElementById('role-error').style.display = 'none';
                 document.getElementById('password-match').classList.add('hidden');
                 
-                // Auto-select first role if none selected when switching to signup
-                if (tab === 'signup' && !selectedRole) {
-                    selectRole('buyer');
+                // Show/hide role selection based on tab
+                const roleContainer = document.getElementById('role-container');
+                if (tab === 'signup') {
+                    roleContainer.style.display = 'flex';
+                    // Auto-select first role if none selected when switching to signup
+                    if (!selectedRole) {
+                        selectRole('buyer');
+                    }
+                } else {
+                    roleContainer.style.display = 'none';
                 }
                 
                 currentTab = tab;
@@ -706,22 +761,14 @@
         }
 
         function validateLoginForm() {
-            const role = document.getElementById('login-role').value;
-            const roleError = document.getElementById('role-error');
-            
-            if (!role) {
-                roleError.style.display = 'block';
-                return false;
-            }
-            roleError.style.display = 'none';
+            // Login form no longer requires role selection
             return true;
         }
 
         function isLoginValid() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value.trim();
-            const role = document.getElementById('login-role').value;
-            return role && username && password;
+            return username && password;
         }
 
         function isFormValid() {
@@ -785,8 +832,12 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Hide role selection initially (only show for sign-up)
+            const roleContainer = document.getElementById('role-container');
+            roleContainer.style.display = 'none';
+            
             // Auto-hide Django messages after 5 seconds
-            const djangoMessages = document.querySelectorAll('.notification');
+            const djangoMessages = document.querySelectorAll('.top-notification');
             djangoMessages.forEach(function(message) {
                 setTimeout(() => {
                     message.style.opacity = '0';
