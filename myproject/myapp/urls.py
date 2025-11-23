@@ -2,6 +2,11 @@ from django.urls import path
 from django.shortcuts import redirect
 from . import views
 
+# Test view to verify URL routing
+def test_admin_users(request):
+    from django.http import HttpResponse
+    return HttpResponse("admin_users URL is working!")
+
 urlpatterns = [
     path('', views.landing_page, name='home'),
     path('marketplace/', views.home, name='marketplace'),
@@ -11,6 +16,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin/users/', views.admin_users, name='admin_users'),
+    path('admin/users/test/', test_admin_users, name='test_admin_users'),
     path('admin/users/add/', views.admin_user_add, name='admin_user_add'),
     path('admin/users/<int:user_id>/edit/', views.admin_user_edit, name='admin_user_edit'),
     path('admin/users/<int:user_id>/toggle-status/', views.admin_user_toggle_status, name='admin_user_toggle_status'),

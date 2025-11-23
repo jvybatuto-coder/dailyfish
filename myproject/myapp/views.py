@@ -535,14 +535,21 @@ def admin_dashboard(request):
 @user_passes_test(lambda u: u.is_superuser)
 def admin_users(request):
     """Admin users management page"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"admin_users view called for user: {request.user.username}, is_superuser: {request.user.is_superuser}")
+    
     try:
         from django.core.paginator import Paginator
         
         search_query = request.GET.get('search', '')
+        logger.info(f"Search query: {search_query}")
         
         # Get users with error handling
         try:
             users = User.objects.filter(is_staff=False)
+            logger.info(f"Found {users.count()} users")
         except Exception as e:
             logger.error(f'Error fetching users: {str(e)}')
             users = User.objects.none()
@@ -553,6 +560,7 @@ def admin_users(request):
                 Q(username__icontains=search_query) |
                 Q(email__icontains=search_query)
             )
+            logger.info(f"After search filter: {users.count()} users")
         
         # Pagination
         paginator = Paginator(users, 10)
@@ -565,6 +573,7 @@ def admin_users(request):
             'page_obj': page_obj,
         }
         
+        logger.info("Rendering admin_users.html template")
         return render(request, 'admin_users.html', context)
         
     except Exception as e:
@@ -574,7 +583,7 @@ def admin_users(request):
             'users': User.objects.none(), 
             'is_paginated': False,
             'page_obj': None,
-            'error_message': 'There was an error loading the users. Please try again.'
+            'error_message': f'There was an error loading the users: {str(e)}'
         })
 
 @login_required
