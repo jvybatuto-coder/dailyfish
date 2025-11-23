@@ -21,6 +21,48 @@
         }
         .header { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
         .header-content { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; }
+        
+        /* ---------- NOTIFICATION ---------- */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            width: auto;
+            max-width: 90%;
+            pointer-events: none;
+        }
+
+        .notification {
+            padding: 1rem 2rem;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideInDown 0.3s ease-out;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            display: inline-block;
+            color: #111; /* black text for readability */
+            background: #d4edda; /* default to success-like */
+            pointer-events: auto;
+            min-width: 300px;
+        }
+
+        .notification.success { background: #d4edda; }
+        .notification.error { background: #f8d7da; }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         .logo {
             display: flex;
             align-items: center;
@@ -78,6 +120,17 @@
             </nav>
         </div>
     </header>
+
+    <!-- Django Messages Display -->
+    {% if messages %}
+        <div class="notification-container">
+            {% for message in messages %}
+                <div class="notification {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <main class="container">
         <div class="main-content">
@@ -625,11 +678,27 @@
                     const c = document.getElementById('contact-number-input');
                     if (c && c.value) localStorage.setItem('userContactNumber', String(c.value).trim());
                 } catch (_) {}
-                if (data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                } else if (data.order_id) {
-                    window.location.href = `/orders/${data.order_id}/`;
-                }
+                
+                // Debug: Log the response data
+                console.log('Order response:', data);
+                
+                // Close modal first
+                closeOrderModal();
+                
+                // Redirect after a short delay to allow notification to show
+                setTimeout(() => {
+                    if (data.redirect_url) {
+                        console.log('Redirecting to:', data.redirect_url);
+                        window.location.href = data.redirect_url;
+                    } else if (data.order_id) {
+                        const redirectUrl = `/orders/${data.order_id}/`;
+                        console.log('Redirecting to order ID:', redirectUrl);
+                        window.location.href = redirectUrl;
+                    } else {
+                        console.log('No redirect info found, reloading page');
+                        window.location.reload();
+                    }
+                }, 1500); // 1.5 second delay
             })
             .catch(err => {
                 showNotification(String(err && err.message ? err.message : 'Error placing order'), 'error');
@@ -765,6 +834,17 @@
 
         // Initialize cart count and auto-refresh on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide Django messages after 5 seconds
+            const djangoMessages = document.querySelectorAll('.notification');
+            djangoMessages.forEach(function(message) {
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }, 5000);
+            });
+
             updateCartCount();
 
             // Start auto-refresh every 10 seconds

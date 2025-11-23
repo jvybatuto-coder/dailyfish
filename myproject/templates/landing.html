@@ -708,6 +708,179 @@
                 gap: 2rem;
             }
         }
+
+        /* About Section Media Layout */
+        .about-media-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .banner-section {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .banner-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        .banner-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.7), rgba(0, 0, 0, 0.5));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .banner-content {
+            text-align: center;
+            color: white;
+            z-index: 2;
+        }
+
+        .banner-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .banner-subtitle {
+            font-size: 1.25rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .video-section {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-info {
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            text-align: center;
+        }
+
+        .video-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .video-description {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* Responsive Design for Media Layout */
+        @media (max-width: 768px) {
+            .about-media-container {
+                padding: 2rem 1rem;
+                gap: 2rem;
+            }
+
+            .banner-wrapper {
+                height: 300px;
+            }
+
+            .banner-title {
+                font-size: 2rem;
+            }
+
+            .banner-subtitle {
+                font-size: 1rem;
+            }
+
+            .video-player {
+                height: 250px;
+            }
+
+            .video-info {
+                padding: 1.5rem;
+            }
+
+            .video-title {
+                font-size: 1.5rem;
+            }
+
+            .video-description {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .about-media-container {
+                padding: 1.5rem 0.5rem;
+                gap: 1.5rem;
+            }
+
+            .banner-wrapper {
+                height: 250px;
+            }
+
+            .banner-title {
+                font-size: 1.8rem;
+            }
+
+            .banner-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .video-player {
+                height: 200px;
+            }
+
+            .video-info {
+                padding: 1rem;
+            }
+
+            .video-title {
+                font-size: 1.3rem;
+            }
+
+            .video-description {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -776,12 +949,38 @@
 
     <!-- About Section -->
     <section id="about" class="about">
-        <div class="container">
-            <div class="about-image">
-                
+        <div class="about-media-container">
+            <!-- Banner Section -->
+            <div class="banner-section">
+                <div class="banner-wrapper">
+                    <img src="{% static 'image/banner.png' %}" alt="DailyFish Banner" class="banner-image">
+                    <div class="banner-overlay">
+                        <div class="banner-content">
+                            <h2 class="banner-title">Welcome to DailyFish</h2>
+                            <p class="banner-subtitle">Fresh Seafood, Delivered Daily</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="about-content">
-                
+            
+            <!-- Video Section -->
+            <div class="video-section">
+                <div class="video-wrapper">
+                    <video 
+                        id="aboutVideo"
+                        class="video-player"
+                        poster="{% static 'image/banner.png' %}"
+                        controls
+                        preload="metadata"
+                        playsinline>
+                        <source src="{% static 'image/video.mp4' %}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-info">
+                        <h3 class="video-title">Our Story</h3>
+                        <p class="video-description">Discover how we bring the freshest seafood to your doorstep</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

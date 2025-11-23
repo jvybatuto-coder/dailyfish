@@ -846,6 +846,11 @@ def checkout(request):
 @login_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Add success message if this is a newly created order (no messages yet)
+    if not request.GET.get('no_message'):
+        messages.success(request, f'Order #{order.id} placed successfully! Your order is being processed.')
+    
     # Pick a default seller (first staff user) to route buyer messages
     seller_user = User.objects.filter(is_staff=True).order_by('id').first()
     
