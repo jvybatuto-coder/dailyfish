@@ -1,0 +1,18 @@
+services:
+  # A web service
+  - type: web
+    name: dailyfish
+    env: python
+    plan: free
+    buildCommand: cd myproject && pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: cd myproject && gunicorn myproject.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.4
+      - key: DJANGO_SETTINGS_MODULE
+        value: myproject.settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+    autoDeploy: true
