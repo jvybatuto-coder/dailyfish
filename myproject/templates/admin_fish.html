@@ -308,6 +308,48 @@
             color: #721c24;
         }
 
+        /* ---------- NOTIFICATION ---------- */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            width: auto;
+            max-width: 90%;
+            pointer-events: none;
+        }
+
+        .notification {
+            padding: 1rem 2rem;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideInDown 0.3s ease-out;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            display: inline-block;
+            color: #111;
+            background: #d4edda;
+            pointer-events: auto;
+            min-width: 300px;
+        }
+
+        .notification.success { background: #d4edda; }
+        .notification.error { background: #f8d7da; }
+        .notification.warning { background: #fff3cd; color: #856404; }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -437,6 +479,17 @@
     </style>
 </head>
 <body>
+    <div id="notification-container" class="notification-container"></div>
+    
+    <!-- Django Messages Display -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="notification {% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -708,6 +761,65 @@
     </div>
 
     <script>
+        // Notification functions (same as login page)
+        function showError(message) {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = 'notification error';
+            notification.textContent = message;
+            notificationContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        function showSuccess(message) {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = 'notification success';
+            notification.textContent = message;
+            notificationContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        function showWarning(message) {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = 'notification warning';
+            notification.textContent = message;
+            notificationContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        // Auto-hide Django messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const djangoMessages = document.querySelectorAll('.notification');
+            djangoMessages.forEach(function(message) {
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
+
         function openAddFishModal() {
             document.getElementById('modalTitle').textContent = 'Add New Fish Product';
             document.getElementById('fishForm').reset();
@@ -748,10 +860,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        showSuccess('Fish product status updated successfully!');
                         location.reload();
                     } else {
-                        alert('Error: ' + data.error);
+                        showError('Error: ' + data.error);
                     }
+                })
+                .catch(error => {
+                    showError('Network error: ' + error.message);
                 });
             }
         }
@@ -768,10 +884,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        showSuccess('Fish product deleted successfully!');
                         location.reload();
                     } else {
-                        alert('Error: ' + data.error);
+                        showError('Error: ' + data.error);
                     }
+                })
+                .catch(error => {
+                    showError('Network error: ' + error.message);
                 });
             }
         }
@@ -804,10 +924,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    const action = fishId ? 'updated' : 'created';
+                    showSuccess(`Fish product ${action} successfully!`);
+                    closeModal();
                     location.reload();
                 } else {
-                    alert('Error: ' + data.error);
+                    showError('Error: ' + data.error);
                 }
+            })
+            .catch(error => {
+                showError('Network error: ' + error.message);
             });
         });
 
