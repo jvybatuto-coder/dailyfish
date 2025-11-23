@@ -135,7 +135,7 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} - ₱{self.price_per_kg}/kg"
 
-class Order(models.Model):
+class OrderNew(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('processing', 'Processing'),
@@ -170,8 +170,8 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.order_number} - {self.buyer.username}"
 
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+class OrderItemNew(models.Model):
+    order = models.ForeignKey(OrderNew, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity_kg = models.DecimalField(
         max_digits=8, 
@@ -192,7 +192,7 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity_kg}kg of {self.product.name}"
 
-class Cart(models.Model):
+class CartNew(models.Model):
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='carts')
     is_active = models.BooleanField(default=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -213,8 +213,8 @@ class Cart(models.Model):
     def item_count(self):
         return self.items.count()
 
-class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+class CartItemNew(models.Model):
+    cart = models.ForeignKey(CartNew, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity_kg = models.DecimalField(
         max_digits=8, 
@@ -237,7 +237,7 @@ class CartItem(models.Model):
     def __str__(self):
         return f"{self.quantity_kg}kg of {self.product.name} in cart"
 
-class Message(models.Model):
+class MessageNew(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
     subject = models.CharField(max_length=200)
