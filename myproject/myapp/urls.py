@@ -1,6 +1,7 @@
-from django.urls import path
+from django.urls import path, include
 from django.shortcuts import redirect
 from . import views
+from . import urls_admin_products
 
 # Test view to verify URL routing
 def test_admin_users(request):
@@ -26,6 +27,11 @@ urlpatterns = [
     path('admin/fish/<int:fish_id>/edit/', views.admin_fish_edit, name='admin_fish_edit'),
     path('admin/fish/<int:fish_id>/toggle-status/', views.admin_fish_toggle_status, name='admin_fish_toggle_status'),
     path('admin/fish/<int:fish_id>/delete/', views.admin_fish_delete, name='admin_fish_delete'),
+    
+    # New Admin Product Management (Admin as Seller)
+    path('admin/products/', views_admin_products.admin_products_new, name='admin_products_new'),
+    path('admin/products/', include(urls_admin_products)),
+    
     path('location/select/', views.location_select, name='location_select'),
     path('fish/', views.fish_list, name='fish_list'),
     path('fish/<int:fish_id>/', views.fish_detail, name='fish_detail'),
@@ -33,7 +39,7 @@ urlpatterns = [
     path('cart/', views.cart_view, name='cart'),
     path('cart/add/<int:fish_id>/', views.add_to_cart, name='add_to_cart'),
     path('cart/update/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
-    path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+    path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_cart_item'),
     path('checkout/', views.checkout, name='checkout'),
     path('orders/', views.order_history, name='order_history'),
     path('orders/<int:order_id>/', views.order_detail, name='order_detail'),

@@ -401,20 +401,20 @@ document.getElementById('productForm').addEventListener('submit', async function
     
     try {
         const formData = new FormData(this);
-        const url = isEdit ? `/api/products/${productId}/` : '/api/products/';
-        const method = isEdit ? 'PATCH' : 'POST';
+        const url = isEdit ? `/admin/products/edit/${productId}/` : '/admin/products/add/';
+        const method = 'POST';
         
         const response = await fetch(url, {
             method: method,
             headers: {
-                'X-CSRFToken': API.getCSRFToken()
+                'X-CSRFToken': getCSRFToken()
             },
             body: formData
         });
         
         const result = await response.json();
         
-        if (response.ok) {
+        if (result.success) {
             notifications.success(`Product ${isEdit ? 'updated' : 'created'} successfully!`);
             closeProductModal();
             setTimeout(() => window.location.reload(), 1500);
@@ -428,27 +428,40 @@ document.getElementById('productForm').addEventListener('submit', async function
     }
 });
 
+// Helper function to get CSRF token
+function getCSRFToken() {
+    const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+    return cookie ? cookie.split('=')[1] : '';
+}
+
 // Edit product
 async function editProduct(productId) {
     try {
-        const product = await API.get(`/api/products/${productId}/`);
+        const response = await fetch(`/admin/products/get/${productId}/`);
+        const result = await response.json();
         
-        document.getElementById('modalTitle').textContent = 'Edit Product';
-        document.getElementById('productId').value = product.id;
-        document.getElementById('productName').value = product.name;
-        document.getElementById('productCategory').value = product.category;
-        document.getElementById('productPrice').value = product.price_per_kilo;
-        document.getElementById('productStock').value = product.stock_quantity;
-        document.getElementById('productThreshold').value = product.low_stock_threshold;
-        document.getElementById('productStatus').value = product.status;
-        document.getElementById('productDescription').value = product.description;
-        
-        // Show image preview if exists
-        if (product.image_url) {
-            document.getElementById('imagePreview').innerHTML = `<img src="${product.image_url}" alt="Preview" class="w-full h-full object-cover">`;
+        if (result.success) {
+            const product = result.product;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Product';
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = product.category;
+            document.getElementById('productPrice').value = product.price_per_kilo;
+            document.getElementById('productStock').value = product.stock_quantity;
+            document.getElementById('productThreshold').value = product.low_stock_threshold;
+            document.getElementById('productStatus').value = product.status;
+            document.getElementById('productDescription').value = product.description;
+            
+            // Show image preview if exists
+            if (product.image_url) {
+                document.getElementById('imagePreview').innerHTML = `<img src="${product.image_url}" alt="Preview" class="w-full h-full object-cover">`;
+            }
+            
+            document.getElementById('productModal').classList.remove('hidden');
+        } else {
+            notifications.error(result.error || 'Failed to load product data');
         }
-        
-        document.getElementById('productModal').classList.remove('hidden');
     } catch (error) {
         notifications.error('Failed to load product data');
     }
@@ -458,12 +471,21 @@ async function editProduct(productId) {
 async function toggleProductStatus(productId) {
     confirmAction('Are you sure you want to toggle this product\'s status?', async () => {
         try {
-            const product = await API.get(`/api/products/${productId}/`);
-            const newStatus = product.status === 'active' ? 'inactive' : 'active';
+            const response = await fetch(`/admin/products/toggle/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            });
             
-            await API.patch(`/api/products/${productId}/`, { status: newStatus });
-            notifications.success('Product status updated successfully!');
-            setTimeout(() => window.location.reload(), 1500);
+            const result = await response.json();
+            
+            if (result.success) {
+                notifications.success('Product status updated successfully!');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                notifications.error(result.error || 'Failed to update product status');
+            }
         } catch (error) {
             notifications.error('Failed to update product status');
         }
@@ -474,9 +496,21 @@ async function toggleProductStatus(productId) {
 async function deleteProduct(productId) {
     confirmAction('Are you sure you want to delete this product? This action cannot be undone.', async () => {
         try {
-            await API.delete(`/api/products/${productId}/`);
-            notifications.success('Product deleted successfully!');
-            setTimeout(() => window.location.reload(), 1500);
+            const response = await fetch(`/admin/products/delete/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                notifications.success('Product deleted successfully!');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                notifications.error(result.error || 'Failed to delete product');
+            }
         } catch (error) {
             notifications.error('Failed to delete product');
         }
@@ -533,9 +567,24 @@ async function bulkDelete() {
     
     confirmAction(`Are you sure you want to delete ${selectedProducts.size} products?`, async () => {
         try {
-            const promises = Array.from(selectedProducts).map(id => API.delete(`/api/products/${id}/`));
-            await Promise.all(promises);
-            notifications.success(`${selectedProducts.size} products deleted successfully!`);
+            const promises = Array.from(selectedProducts).map(id => 
+                fetch(`/admin/products/delete/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                }).then(response => response.json())
+            );
+            
+            const results = await Promise.all(promises);
+            const failedCount = results.filter(r => !r.success).length;
+            
+            if (failedCount === 0) {
+                notifications.success(`${selectedProducts.size} products deleted successfully!`);
+            } else {
+                notifications.warning(`${selectedProducts.size - failedCount} products deleted, ${failedCount} failed`);
+            }
+            
             setTimeout(() => window.location.reload(), 1500);
         } catch (error) {
             notifications.error('Failed to delete some products');
@@ -547,13 +596,24 @@ async function bulkToggleStatus() {
     if (selectedProducts.size === 0) return;
     
     try {
-        const promises = Array.from(selectedProducts).map(async id => {
-            const product = await API.get(`/api/products/${id}/`);
-            const newStatus = product.status === 'active' ? 'inactive' : 'active';
-            return API.patch(`/api/products/${id}/`, { status: newStatus });
-        });
-        await Promise.all(promises);
-        notifications.success(`${selectedProducts.size} products updated successfully!`);
+        const promises = Array.from(selectedProducts).map(id => 
+            fetch(`/admin/products/toggle/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            }).then(response => response.json())
+        );
+        
+        const results = await Promise.all(promises);
+        const failedCount = results.filter(r => !r.success).length;
+        
+        if (failedCount === 0) {
+            notifications.success(`${selectedProducts.size} products updated successfully!`);
+        } else {
+            notifications.warning(`${selectedProducts.size - failedCount} products updated, ${failedCount} failed`);
+        }
+        
         setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
         notifications.error('Failed to update some products');
@@ -562,7 +622,7 @@ async function bulkToggleStatus() {
 
 // Export to CSV
 function exportProducts() {
-    window.location.href = '/api/products/?export=csv';
+    window.location.href = '/admin/products/export/';
 }
 
 // Filters
