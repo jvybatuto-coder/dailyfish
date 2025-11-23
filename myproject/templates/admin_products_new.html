@@ -156,15 +156,15 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-2">
-                                <button onclick="editProduct({{ product.id }})" 
+                                <button data-action="edit" data-product-id="{{ product.id }}"
                                         class="text-blue-600 hover:text-blue-800 transition-colors" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button onclick="toggleProductStatus({{ product.id }})" 
+                                <button data-action="toggle" data-product-id="{{ product.id }}"
                                         class="text-yellow-600 hover:text-yellow-800 transition-colors" title="Toggle Status">
                                     <i class="fas fa-power-off"></i>
                                 </button>
-                                <button onclick="deleteProduct({{ product.id }})" 
+                                <button data-action="delete" data-product-id="{{ product.id }}"
                                         class="text-red-600 hover:text-red-800 transition-colors" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -341,6 +341,27 @@
 <script>
 // Product Management
 let selectedProducts = new Set();
+
+// Event delegation for action buttons
+document.addEventListener('click', function(e) {
+    const button = e.target.closest('button[data-action]');
+    if (button) {
+        const action = button.dataset.action;
+        const productId = button.dataset.productId;
+        
+        switch(action) {
+            case 'edit':
+                editProduct(productId);
+                break;
+            case 'toggle':
+                toggleProductStatus(productId);
+                break;
+            case 'delete':
+                deleteProduct(productId);
+                break;
+        }
+    }
+});
 
 // Modal functions
 function openProductModal() {

@@ -283,8 +283,9 @@ function updateDashboardStats(stats) {
     document.querySelector('[data-stat="total_revenue"]').textContent = '₱' + stats.total_revenue.toLocaleString();
     
     // Show notification for important changes
-    if (stats.pending_orders > {{ stats.pending_orders }}) {
-        notifications.warning(`${stats.pending_orders - {{ stats.pending_orders }}} new orders received!`);
+    const initialPendingOrders = {{ stats.pending_orders|default_if_none:"0" }};
+    if (stats.pending_orders > initialPendingOrders) {
+        notifications.warning(`${stats.pending_orders - initialPendingOrders} new orders received!`);
     }
 }
 </script>
