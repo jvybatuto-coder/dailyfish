@@ -563,10 +563,10 @@
         
         <!-- Form Tabs -->
         <div class="form-tabs">
-            <button class="tab-btn active" onclick="switchTab('signin')">
+            <button class="tab-btn active" onclick="switchTab('signin')" id="signin-tab-btn">
                 <span>Sign In</span>
             </button>
-            <button class="tab-btn" onclick="switchTab('signup')">
+            <button class="tab-btn" onclick="switchTab('signup')" id="signup-tab-btn">
                 <span>Sign Up</span>
             </button>
         </div>
@@ -690,55 +690,85 @@
         }
 
         function switchTab(tab) {
-            if (tab === currentTab || isAnimating) return;
+            if (tab === currentTab) return;
+            
+            // Prevent multiple rapid clicks
+            if (isAnimating) {
+                console.log('Animation in progress, please wait...');
+                // Force reset if stuck for more than 3 seconds
+                setTimeout(() => {
+                    if (isAnimating) {
+                        console.log('Force resetting animation state');
+                        isAnimating = false;
+                    }
+                }, 3000);
+                return;
+            }
             
             isAnimating = true;
             const currentForm = document.querySelector(`#${currentTab}-form`);
             const newForm = document.querySelector(`#${tab}-form`);
-            const currentTabBtn = document.querySelector(`[onclick="switchTab('${currentTab}')"]`);
-            const newTabBtn = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+            const currentTabBtn = document.querySelector(`#${currentTab}-tab-btn`);
+            const newTabBtn = document.querySelector(`#${tab}-tab-btn`);
+            
+            console.log(`Switching from ${currentTab} to ${tab}`);
+            
+            // Update tab buttons immediately
+            if (currentTabBtn) currentTabBtn.classList.remove('active');
+            if (newTabBtn) newTabBtn.classList.add('active');
             
             // Fade out current form
-            currentForm.style.opacity = '0';
-            currentForm.style.transform = 'translateX(-20px)';
+            if (currentForm) {
+                currentForm.style.opacity = '0';
+                currentForm.style.transform = 'translateX(-20px)';
+            }
             
-            // Update active states
-            currentTabBtn.classList.remove('active');
-            newTabBtn.classList.add('active');
+            // Show/hide role selection based on tab
+            const roleContainer = document.getElementById('role-container');
+            if (tab === 'signup') {
+                roleContainer.style.display = 'flex';
+                // Auto-select first role if none selected when switching to signup
+                if (!selectedRole) {
+                    selectRole('buyer');
+                }
+            } else {
+                roleContainer.style.display = 'none';
+            }
             
             // Show and animate in new form
             setTimeout(() => {
-                currentForm.classList.remove('active');
-                newForm.classList.add('active');
+                if (currentForm) currentForm.classList.remove('active');
+                if (newForm) newForm.classList.add('active');
                 
                 // Trigger reflow
-                void newForm.offsetWidth;
+                if (newForm) void newForm.offsetWidth;
                 
                 // Animate in new form
-                newForm.style.opacity = '1';
-                newForm.style.transform = 'translateX(0)';
+                if (newForm) {
+                    newForm.style.opacity = '1';
+                    newForm.style.transform = 'translateX(0)';
+                }
                 
                 // Reset form validations
-                document.getElementById('login-form').reset();
-                document.getElementById('register-form').reset();
-                document.getElementById('password-match').classList.add('hidden');
+                const loginForm = document.getElementById('login-form');
+                const registerForm = document.getElementById('register-form');
+                const passwordMatch = document.getElementById('password-match');
                 
-                // Show/hide role selection based on tab
-                const roleContainer = document.getElementById('role-container');
-                if (tab === 'signup') {
-                    roleContainer.style.display = 'flex';
-                    // Auto-select first role if none selected when switching to signup
-                    if (!selectedRole) {
-                        selectRole('buyer');
-                    }
-                } else {
-                    roleContainer.style.display = 'none';
-                }
+                if (loginForm) loginForm.reset();
+                if (registerForm) registerForm.reset();
+                if (passwordMatch) passwordMatch.classList.add('hidden');
                 
                 currentTab = tab;
                 updateSubmitButtons();
                 isAnimating = false;
+                console.log(`Successfully switched to ${tab}`);
             }, 200); // Match this with CSS transition duration
+        }
+        
+        // Emergency reset function
+        function resetTabSwitching() {
+            isAnimating = false;
+            console.log('Tab switching reset');
         }
 
         function validatePasswordMatch() {
