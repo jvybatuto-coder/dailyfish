@@ -440,33 +440,46 @@ def login_view(request):
 def admin_dashboard(request):
     """Custom admin dashboard with statistics and activity"""
     try:
-        # Get basic statistics
+        # Get basic statistics that always work
         total_users = User.objects.filter(is_staff=False).count()
         
-        # Try to get fish and orders, but handle if models don't exist
+        # Initialize with safe defaults
+        total_fish = 0
+        total_orders = 0
+        total_revenue = 0
+        recent_orders = []
+        recent_activities = []
+        
+        # Try to get additional data safely
         try:
             from .models import Fish, Order
             total_fish = Fish.objects.count()
             total_orders = Order.objects.count()
             
-            # Get recent orders
+            # Get recent orders with user info
             recent_orders = Order.objects.select_related('user').order_by('-created_at')[:5]
             
-            # Add status color to orders
+            # Add status colors
             for order in recent_orders:
-                if order.status == 'pending':
-                    order.status_color = 'warning'
-                elif order.status == 'processing':
-                    order.status_color = 'primary'
-                elif order.status == 'delivered':
-                    order.status_color = 'success'
+                if hasattr(order, 'status'):
+                    if order.status == 'pending':
+                        order.status_color = 'warning'
+                    elif order.status == 'processing':
+                        order.status_color = 'primary'
+                    elif order.status == 'delivered':
+                        order.status_color = 'success'
+                    else:
+                        order.status_color = 'danger'
                 else:
-                    order.status_color = 'danger'
-                    
-            # Get recent activities
-            recent_activities = []
+                    order.status_color = 'secondary'
             
-            # Recent user registrations
+            # Calculate revenue safely
+            try:
+                total_revenue = Order.objects.filter(status='delivered').aggregate(total=Sum('total_price'))['total'] or 0
+            except:
+                total_revenue = 0
+            
+            # Get recent activities
             recent_users = User.objects.filter(is_staff=False).order_by('-date_joined')[:3]
             for user in recent_users:
                 recent_activities.append({
@@ -475,7 +488,7 @@ def admin_dashboard(request):
                     'time': localtime(user.date_joined).strftime('%H:%M')
                 })
             
-            # Recent orders
+            # Recent orders activities
             for order in Order.objects.select_related('user').order_by('-created_at')[:2]:
                 recent_activities.append({
                     'icon': '📦',
@@ -483,20 +496,13 @@ def admin_dashboard(request):
                     'time': localtime(order.created_at).strftime('%H:%M')
                 })
             
-            # Sort by time
+            # Sort activities
             recent_activities.sort(key=lambda x: x['time'], reverse=True)
             recent_activities = recent_activities[:5]
             
-            # Calculate revenue
-            total_revenue = Order.objects.filter(status='delivered').aggregate(total=Sum('total_price'))['total'] or 0
-            
-        except ImportError:
-            # Models don't exist, set defaults
-            total_fish = 0
-            total_orders = 0
-            recent_orders = []
-            recent_activities = []
-            total_revenue = 0
+        except Exception as model_error:
+            logger.error(f'Model access error: {model_error}')
+            # Keep defaults if models fail
         
         context = {
             'total_users': total_users,
@@ -511,8 +517,16 @@ def admin_dashboard(request):
         
     except Exception as e:
         logger.error(f'Admin dashboard error: {str(e)}', exc_info=True)
-        # Fallback to basic admin if dashboard fails
-        return redirect('/admin/')
+        # Show a simple error page instead of redirecting
+        return render(request, 'admin_dashboard.html', {
+            'total_users': 0,
+            'total_fish': 0,
+            'total_orders': 0,
+            'total_revenue': 0,
+            'recent_orders': [],
+            'recent_activities': [],
+            'error': 'Dashboard temporarily unavailable'
+        })
 
 def logout_view(request):
     logout(request)
