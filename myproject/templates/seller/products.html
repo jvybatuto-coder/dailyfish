@@ -342,16 +342,17 @@
                 align-items: flex-start; 
                 gap: 1rem;
                 padding: 1rem 0;
+                margin-top: 1rem;
             }
             .seller-nav-inner { 
-                padding: 0 1.25rem; 
+                padding: 0 1rem; 
             }
             .seller-nav-links {
-                display: none; /* Hide nav links on mobile */
+                display: none;
             }
             .seller-main { 
-                margin-top: 5rem;
-                padding: 0 1.25rem 2rem; 
+                margin-top: 4rem;
+                padding: 0 1rem 2rem; 
             }
             .btn-primary {
                 width: 100%;
@@ -367,6 +368,21 @@
                 text-align: center;
                 justify-content: center;
             }
+            .table-wrapper {
+                padding: 0.5rem;
+                border-radius: 8px;
+            }
+            th, td {
+                padding: 0.6rem 0.4rem;
+                font-size: 0.85rem;
+            }
+            .thumb-cell {
+                width: 50px;
+            }
+            .thumb-wrapper {
+                width: 40px;
+                height: 40px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -374,17 +390,26 @@
                 display: none;
             }
             .seller-title {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
             }
             .seller-subtitle {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
             .table-wrapper {
-                padding: 1rem 0.5rem;
-                border-radius: 10px;
+                padding: 0.25rem;
+                border-radius: 8px;
             }
             th, td {
-                padding: 0.8rem 0.6rem;
+                padding: 0.5rem 0.3rem;
+                font-size: 0.8rem;
+            }
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+            }
+            .link-small {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.6rem;
             }
         }
 
@@ -518,10 +543,11 @@
                 margin-left: 0;
                 max-width: 100%;
                 padding: 1rem;
+                padding-top: 4rem;
             }
 
             .mobile-menu-toggle {
-                display: block;
+                display: flex;
                 position: fixed;
                 top: 1rem;
                 left: 1rem;
@@ -532,7 +558,6 @@
                 border-radius: 50%;
                 width: 40px;
                 height: 40px;
-                display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
@@ -545,6 +570,16 @@
 
             .seller-sidebar.active + .seller-main-content .mobile-menu-toggle {
                 left: 200px;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 1rem 0.5rem;
+            }
+            
+            table {
+                min-width: 800px;
             }
         }
 

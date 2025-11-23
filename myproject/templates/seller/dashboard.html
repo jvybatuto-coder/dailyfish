@@ -265,10 +265,11 @@
                 margin-left: 0;
                 max-width: 100%;
                 padding: 1rem;
+                padding-top: 4rem;
             }
             
             .mobile-menu-toggle {
-                display: block;
+                display: flex;
                 position: fixed;
                 top: 1rem;
                 left: 1rem;
@@ -279,7 +280,6 @@
                 border-radius: 50%;
                 width: 40px;
                 height: 40px;
-                display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
@@ -293,6 +293,26 @@
             .seller-sidebar.active + .seller-main-content .mobile-menu-toggle {
                 left: 200px;
             }
+
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 1rem 0.5rem;
+            }
+            
+            table {
+                min-width: 700px;
+            }
+
+            .seller-cards {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+
+            .period-toggle {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
         }
         
         @media (min-width: 1025px) {
@@ -305,11 +325,35 @@
             .seller-header { 
                 flex-direction: column; 
                 align-items: flex-start; 
-                margin-top: 2rem;
+                margin-top: 1rem;
+                gap: 1rem;
             }
-            
+            .seller-title {
+                font-size: 1.3rem;
+            }
+            .seller-subtitle {
+                font-size: 0.85rem;
+            }
             .seller-cards {
                 grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            .seller-card {
+                padding: 1rem;
+            }
+            .table-wrapper {
+                padding: 0.5rem;
+            }
+            th, td {
+                padding: 0.6rem 0.4rem;
+                font-size: 0.85rem;
+            }
+            .period-toggle {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .period-btn {
+                text-align: center;
             }
         }
     </style>

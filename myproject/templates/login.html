@@ -69,36 +69,32 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 2rem;
+            gap: 1.5rem;
             margin-bottom: 2rem;
             transition: all 0.3s ease;
+            flex-wrap: wrap;
+            text-align: center;
         }
         
         .logo-container {
-            position: relative;
-            width: 250px;  /* Match landing page logo width */
-            height: 0;     /* Allow absolute positioning of children */
-            margin-right: 2px;  /* Space between logo and welcome text */
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .welcome-container {
             flex: 1;
-            text-align: left;
-            max-width: 400px;
-            padding-left: 2px;  /* Space between logo and text */
-            position: relative;  /* For z-index context if needed */
+            min-width: 250px;
+            text-align: center;
         }
         
         .login-logo {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100%;  /* Takes full width of container */
+            width: 100%;
             height: auto;
-            max-width: 250px;  /* Match landing page */
+            max-width: 80px;
             transition: transform 0.3s ease;
-            display: block;  /* Remove extra space below image */
         }
         
         .login-logo:hover {
@@ -107,7 +103,7 @@
         
         .welcome-text {
             color: #2c3e50;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: 700;
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -122,6 +118,7 @@
             display: block;
             padding: 0.5rem 0;
             transition: all 0.3s ease;
+            line-height: 1.3;
         }
         
         .welcome-text::after {
@@ -185,9 +182,10 @@
             gap: 1rem;
             margin-bottom: 2rem;
             justify-content: center;
+            flex-wrap: wrap;
         }
         .role-btn {
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border: 2px solid #e23b3b;
             background: white;
             color: #e23b3b;
@@ -195,7 +193,8 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            min-width: 120px;
         }
         .role-btn:hover {
             transform: translateY(-2px);
@@ -212,8 +211,8 @@
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            width: 50%;
-            max-width: 700px;
+            width: 90%;
+            max-width: 500px;
             margin: 2rem auto;
             transition: all 0.3s ease;
             position: relative;
@@ -348,13 +347,116 @@
             to { opacity: 1; transform: translateY(0); }
         }
         @media (max-width: 768px) {
+            .login-header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 0 1rem;
+            }
+            
+            .logo-container {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .welcome-text {
+                font-size: 1rem;
+                line-height: 1.2;
+            }
+            
+            .role-container {
+                flex-direction: row;
+                gap: 0.5rem;
+                padding: 0 1rem;
+            }
+            
+            .role-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+                min-width: 100px;
+            }
+            
+            .form-container {
+                width: 95%;
+                margin: 1rem auto;
+                padding: 1.5rem;
+            }
+            
+            .form-tabs {
+                margin-bottom: 1.5rem;
+            }
+            
+            .tab-btn {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .form-input {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .submit-btn {
+                padding: 0.8rem;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .login-header {
+                padding: 0 0.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .logo-container {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .welcome-text {
+                font-size: 0.9rem;
+            }
+            
             .role-container {
                 flex-direction: column;
                 align-items: center;
+                gap: 0.5rem;
             }
+            
+            .role-btn {
+                width: 100%;
+                max-width: 200px;
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+            
             .form-container {
-                margin: 1rem;
-                padding: 1.5rem;
+                width: 98%;
+                padding: 1rem;
+                margin: 0.5rem auto;
+            }
+            
+            .form-header-text {
+                font-size: 0.9rem;
+                margin: 1rem 0;
+            }
+            
+            .tab-btn {
+                padding: 0.6rem;
+                font-size: 0.85rem;
+            }
+            
+            .form-input {
+                padding: 0.7rem;
+                font-size: 0.85rem;
+            }
+            
+            .submit-btn {
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+            
+            .forgot-link a {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -405,7 +507,7 @@
         
         <!-- Form Header Text -->
         <div class="form-header-text" style="text-align: center; margin: 1.5rem 0; color: #4a5568; font-size: 1.1rem;">
-            Sign in. If you don't have an account
+            Don't have an account? <a href="#" onclick="switchTab('signup'); return false;" style="color: #e23b3b; text-decoration: none; font-weight: 600; border-bottom: 1px solid transparent; transition: all 0.3s ease;" onmouseover="this.style.borderBottom='1px solid #e23b3b';" onmouseout="this.style.borderBottom='1px solid transparent';">Sign up here</a>
         </div>
         
         <!-- Form Tabs -->
@@ -450,12 +552,12 @@
                 <!-- Username: visible for buyers, hidden for sellers -->
                 <div class="form-group" id="username-group">
                     <label for="register-username" class="form-label">Username</label>
-                    <input type="text" id="register-username" name="username" class="form-input" aria-label="Enter your username">
+                    <input type="text" id="register-username" name="username" class="form-input" aria-label="Enter your username" placeholder="Enter your username">
                 </div>
                 <!-- Seller-only: Username -->
                 <div class="form-group seller-only" style="display:none;">
                     <label for="register-seller-username" class="form-label">Username</label>
-                    <input type="text" id="register-seller-username" name="username" class="form-input" aria-label="Enter your username">
+                    <input type="text" id="register-seller-username" name="username" class="form-input" aria-label="Enter your username" placeholder="Enter your username" required>
                 </div>
                 <!-- Shared: Gmail Address -->
                 <div class="form-group">
@@ -465,7 +567,7 @@
                 <!-- Seller-only: Phone Number -->
                 <div class="form-group seller-only" style="display:none;">
                     <label for="register-phone" class="form-label">Phone Number</label>
-                    <input type="text" id="register-phone" name="phone_number" class="form-input" aria-label="Enter your phone number">
+                    <input type="text" id="register-phone" name="phone_number" class="form-input" aria-label="Enter your phone number" placeholder="Enter your phone number" required>
                 </div>
                 <!-- Shared: Password -->
                 <div class="form-group">
@@ -572,6 +674,11 @@
                 document.getElementById('register-form').reset();
                 document.getElementById('role-error').style.display = 'none';
                 document.getElementById('password-match').classList.add('hidden');
+                
+                // Auto-select first role if none selected when switching to signup
+                if (tab === 'signup' && !selectedRole) {
+                    selectRole('buyer');
+                }
                 
                 currentTab = tab;
                 updateSubmitButtons();
