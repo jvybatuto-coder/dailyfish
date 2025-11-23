@@ -139,7 +139,7 @@ LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
 # CSRF Settings for Production
-CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = False  # Disabled for Render compatibility
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_TRUSTED_ORIGINS = [
@@ -148,13 +148,13 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session Settings for Production
-SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = False  # Disabled for Render compatibility
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Security Headers for Production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # SECURE_SSL_REDIRECT = True  # Disabled for Render compatibility
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
