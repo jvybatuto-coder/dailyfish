@@ -1,5 +1,4 @@
 import os
-import django
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -40,11 +39,3 @@ def create_superuser_if_not_exists():
         
     except Exception as e:
         print(f"[ERROR] Failed to create superuser: {str(e)}")
-
-# Auto-create superuser when Django loads
-if os.environ.get('RUN_MAIN') or not django.setup():
-    # Only run when not in the reload process (development server)
-    try:
-        create_superuser_if_not_exists()
-    except Exception as e:
-        print(f"[ERROR] Auto superuser creation failed: {str(e)}")
