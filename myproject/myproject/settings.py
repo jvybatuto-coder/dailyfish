@@ -125,11 +125,6 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -138,23 +133,7 @@ LOGIN_REDIRECT_URL = 'fish_list'
 LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
-# CSRF Settings for Production
-CSRF_COOKIE_SECURE = False  # Disabled for Render compatibility
-CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_TRUSTED_ORIGINS = [
-    'https://dailyfish.onrender.com',
-    'https://*.onrender.com',
-]
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-# Session Settings for Production
-SESSION_COOKIE_SECURE = False  # Disabled for Render compatibility
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-
-# Security Headers for Production
-if not DEBUG:
-    # SECURE_SSL_REDIRECT = True  # Disabled for Render compatibility
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

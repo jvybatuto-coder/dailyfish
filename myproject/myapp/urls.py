@@ -33,7 +33,6 @@ urlpatterns = [
     path('seller/profile/', views.seller_profile, name='seller_profile'),
 
     # Admin Panel (custom)
-    path('admin-panel/', views.admin_dashboard, name='admin_dashboard'),
     path('admin-panel/products/', views.admin_products, name='admin_products'),
    path('admin-panel/products/<int:fish_id>/', views.admin_products, name='admin_product_edit'),
     path('admin-panel/orders/', views.admin_orders, name='admin_orders'),

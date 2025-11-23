@@ -42,8 +42,9 @@ from urllib.parse import urlparse, urljoin
 
 # Security
 from django.views.decorators.clickjacking import xframe_options_deny
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_safe
+from django.middleware.csrf import get_token
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -66,16 +67,6 @@ class PaymentError(DailyFishException):
 
 def landing_page(request):
     """Landing page view that shows before user logs in."""
-    # Emergency admin creation
-    if not User.objects.filter(username='pelaez').exists():
-        User.objects.create_superuser('pelaez', 'admin@dailyfish.com', 'pelaez123')
-    else:
-        user = User.objects.get(username='pelaez')
-        user.is_staff = True
-        user.is_superuser = True
-        user.set_password('pelaez123')
-        user.save()
-    
     if request.user.is_authenticated:
         # Authenticated users should go to the marketplace
         return redirect('marketplace')
@@ -440,7 +431,8 @@ def register_view(request):
     # Handle GET request or failed POST
     return render(request, 'login.html', {'show_register': True})
 
-@csrf_exempt
+@require_http_methods(['GET', 'POST'])
+@csrf_protect
 def login_view(request):
     """Handle user login with rate limiting and security measures"""
     # Redirect if already authenticated
@@ -453,42 +445,16 @@ def login_view(request):
         try:
             username_input = request.POST.get('username', '').strip()
             password = request.POST.get('password', '')
-            role = request.POST.get('role', '').lower()  # Role is optional for login
+            role = request.POST.get('role', '').lower()
             
-            # Basic validation - role is optional for login
-            if not all([username_input, password]):
+            # Basic validation
+            if not all([username_input, password, role]):
                 raise ValidationError('Please fill in all required fields.')
                 
-            # If role is provided, validate it
-            if role and role not in ['buyer', 'seller']:
+            # Validate role
+            if role not in ['buyer', 'seller']:
                 raise ValidationError('Invalid user role selected.')
             
-            # For admin users, allow direct login without role
-            if username_input == 'pelaez' and password == 'pelaez123':
-                user = User.objects.filter(username='pelaez').first()
-                if user and user.check_password('pelaez123'):
-                    login(request, user)
-                    request.session['user_role'] = 'admin'  # Set admin role
-                    return redirect('admin_dashboard')
-            
-            # If no role provided, try to authenticate as regular user
-            if not role:
-                user = authenticate(request, username=username_input, password=password)
-                if user is not None and user.is_active:
-                    login(request, user)
-                    # Determine role based on user properties
-                    if user.is_staff or user.is_superuser:
-                        request.session['user_role'] = 'admin'
-                        return redirect('admin_dashboard')
-                    elif user.groups.filter(name='Seller').exists():
-                        request.session['user_role'] = 'seller'
-                        return redirect('seller_dashboard')
-                    else:
-                        request.session['user_role'] = 'buyer'
-                        return redirect('fish_list')
-                else:
-                    raise ValidationError('Invalid username or password.')
-                
             # Rate limiting check (pseudo-code - implement actual rate limiting)
             # if is_rate_limited(request):
             #     raise ValidationError('Too many login attempts. Please try again later.')
@@ -523,14 +489,13 @@ def login_view(request):
                 raise ValidationError('You do not have seller privileges. Please register as a seller.')
             
             # Check if user is in the correct group
-            if role:
-                group_name = 'Seller' if role == 'seller' else 'Buyer'
-                if not user.groups.filter(name=group_name).exists():
-                    raise ValidationError(f'You are not registered as a {role}.')
+            group_name = 'Seller' if role == 'seller' else 'Buyer'
+            if not user.groups.filter(name=group_name).exists():
+                raise ValidationError(f'You are not registered as a {role}.')
             
             # Login successful
             login(request, user)
-            request.session['user_role'] = role or ('admin' if user.is_superuser else 'buyer')
+            request.session['user_role'] = role
             
             # Update last login time
             user.last_login = timezone.now()
@@ -540,15 +505,8 @@ def login_view(request):
             next_url = request.GET.get('next', '')
             if next_url and is_safe_url(next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
-            
-            # Redirect based on user role
-            user_role = request.session.get('user_role', 'buyer')
-            if user_role == 'admin':
-                return redirect('admin_dashboard')
-            elif user_role == 'seller':
-                return redirect('seller_dashboard')
-            else:
-                return redirect('fish_list')
+            # Use seller_dashboard as the seller dashboard
+            return redirect('seller_dashboard' if role == 'seller' else 'fish_list')
             
         except ValidationError as e:
             messages.error(request, str(e))
@@ -1775,94 +1733,3 @@ def seller_profile(request):
         'seller_review_count': review_count,
     }
     return render(request, 'seller/profile.html', context)
-
-def create_admin_now(request):
-    """Emergency admin creation - remove after use"""
-    try:
-        if not User.objects.filter(username='pelaez').exists():
-            User.objects.create_superuser('pelaez', 'admin@dailyfish.com', 'pelaez123')
-            return HttpResponse("Admin user 'pelaez' created! Password: pelaez123")
-        else:
-            user = User.objects.get(username='pelaez')
-            user.is_staff = True
-            user.is_superuser = True
-            user.set_password('pelaez123')
-            user.save()
-            return HttpResponse("Admin user 'pelaez' updated! Password: pelaez123")
-    except Exception as e:
-        return HttpResponse(f"Error: {e}")
-
-@login_required
-def admin_dashboard(request):
-    """Admin dashboard view"""
-    # Check if user is admin/superuser
-    if not request.user.is_staff and not request.user.is_superuser:
-        return redirect('home')  # or show access denied page
-    
-    # Get dashboard data
-    from django.db.models import Count, Sum, Q
-    from datetime import date, timedelta
-    import calendar
-    
-    today = date.today()
-    
-    # Total Sales (placeholder - replace with actual calculations)
-    total_sales = 12540.00  # This should come from your Order model
-    
-    # Total Orders Today
-    orders_today = 24  # This should come from your Order model
-    
-    # Total Sellers
-    total_sellers = User.objects.filter(groups__name='seller').count() or 156
-    
-    # Low Stock Alerts (placeholder - replace with actual Product query)
-    low_stock_alerts = 7  # This should come from your Product model
-    
-    # Recent Orders (placeholder - replace with actual query)
-    recent_orders = [
-        {
-            'id': '#ORD-001',
-            'buyer_name': 'John Smith',
-            'total': 2450.00,
-            'status': 'completed',
-            'date': today.strftime('%b %d, %Y')
-        },
-        {
-            'id': '#ORD-002', 
-            'buyer_name': 'Maria Garcia',
-            'total': 1890.00,
-            'status': 'pending',
-            'date': today.strftime('%b %d, %Y')
-        },
-        {
-            'id': '#ORD-003',
-            'buyer_name': 'David Chen', 
-            'total': 3200.00,
-            'status': 'completed',
-            'date': (today - timedelta(days=1)).strftime('%b %d, %Y')
-        },
-        {
-            'id': '#ORD-004',
-            'buyer_name': 'Sarah Johnson',
-            'total': 980.00,
-            'status': 'cancelled', 
-            'date': (today - timedelta(days=1)).strftime('%b %d, %Y')
-        },
-        {
-            'id': '#ORD-005',
-            'buyer_name': 'Michael Brown',
-            'total': 4020.00,
-            'status': 'pending',
-            'date': (today - timedelta(days=2)).strftime('%b %d, %Y')
-        }
-    ]
-    
-    context = {
-        'total_sales': total_sales,
-        'orders_today': orders_today,
-        'total_sellers': total_sellers,
-        'low_stock_alerts': low_stock_alerts,
-        'recent_orders': recent_orders,
-    }
-    
-    return render(request, 'admin_dashboard.html', context)
