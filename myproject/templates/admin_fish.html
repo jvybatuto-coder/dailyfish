@@ -229,6 +229,29 @@
             border-radius: 8px;
         }
 
+        .default-fish-image {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+        }
+
+        .default-fish-image .fish-icon {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        .default-fish-image .fish-text {
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+
         .badge {
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
@@ -249,6 +272,34 @@
         .badge-danger {
             background: #f8d7da;
             color: #721c24;
+        }
+
+        .stock-low {
+            color: #e67e22;
+            font-weight: 600;
+        }
+
+        .stock-out {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .stock-normal {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
         }
 
         .pagination {
@@ -448,7 +499,22 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
+            <!-- Low Stock Alerts -->
+                {% if low_stock_products %}
+                <div class="alert alert-warning" style="margin-bottom: 2rem;">
+                    <h4 style="margin-bottom: 1rem; color: #856404;">⚠️ Low Stock Alert</h4>
+                    <p>You have {{ low_stock_products|length }} products with low stock (≤5kg). Consider restocking soon:</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+                        {% for fish in low_stock_products %}
+                            <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem;">
+                                {{ fish.name }} ({{ fish.stock_kg }}kg)
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Header -->
             <header class="header">
                 <h1>Fish Products Management</h1>
                 <div class="admin-info">
@@ -496,13 +562,24 @@
                                 {% if fish_obj.image %}
                                     <img src="{{ fish_obj.image.url }}" alt="{{ fish_obj.name }}" class="fish-image">
                                 {% else %}
-                                    <div style="width: 50px; height: 50px; background: #ecf0f1; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">🐠</div>
+                                    <div class="default-fish-image">
+                                        <div class="fish-icon">🐟</div>
+                                        <div class="fish-text">No Image</div>
+                                    </div>
                                 {% endif %}
                             </td>
                             <td>{{ fish_obj.name }}</td>
                             <td>{{ fish_obj.category.name }}</td>
                             <td>₱{{ fish_obj.price_per_kg }}</td>
-                            <td>{{ fish_obj.stock_kg }}</td>
+                            <td>
+                                {% if fish_obj.stock_kg <= 0 %}
+                                    <span class="stock-out">Out of Stock</span>
+                                {% elif fish_obj.stock_kg <= 5 %}
+                                    <span class="stock-low">Low Stock ({{ fish_obj.stock_kg }}kg)</span>
+                                {% else %}
+                                    <span class="stock-normal">{{ fish_obj.stock_kg }}kg</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if fish_obj.is_available %}
                                     <span class="badge badge-success">Available</span>

@@ -589,6 +589,9 @@ def admin_fish(request):
         # Get categories for filter dropdown
         categories = FishCategory.objects.all()
         
+        # Get low stock products (≤5kg and >0 stock)
+        low_stock_products = Fish.objects.filter(stock_kg__gt=0, stock_kg__lte=5).select_related('category')
+        
         # Pagination
         paginator = Paginator(fish_products, 10)
         page_number = request.GET.get('page')
@@ -597,6 +600,7 @@ def admin_fish(request):
         context = {
             'fish_products': page_obj,
             'categories': categories,
+            'low_stock_products': low_stock_products,
             'is_paginated': page_obj.has_other_pages(),
             'page_obj': page_obj,
         }
@@ -605,7 +609,7 @@ def admin_fish(request):
         
     except Exception as e:
         logger.error(f'Admin fish error: {str(e)}', exc_info=True)
-        return render(request, 'admin_fish.html', {'fish_products': [], 'categories': []})
+        return render(request, 'admin_fish.html', {'fish_products': [], 'categories': [], 'low_stock_products': []})
 
 @require_POST
 @login_required
