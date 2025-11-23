@@ -371,9 +371,9 @@ def login_view(request):
     # Redirect if already authenticated
     if request.user.is_authenticated:
         role = request.session.get('user_role', 'buyer')
-        # Admin users go to admin dashboard, regular users to fish list
+        # Admin users go to custom admin dashboard
         if request.user.is_superuser:
-            return redirect('/admin/')
+            return redirect('admin_dashboard')
         return redirect('fish_list')
     
     if request.method == 'POST':
@@ -401,7 +401,7 @@ def login_view(request):
             if user.is_superuser:
                 login(request, user)
                 request.session['user_role'] = 'admin'
-                return redirect('/admin/')
+                return redirect('admin_dashboard')
             
             # For regular users, set role to buyer (no sellers allowed)
             role = 'buyer'
@@ -434,6 +434,69 @@ def login_view(request):
             messages.error(request, 'An error occurred during login. Please try again.')
     
     return render(request, 'login.html', {'show_login': True})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard(request):
+    """Custom admin dashboard with statistics and activity"""
+    from django.db.models import Count, Sum, Q
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Get statistics
+    total_users = User.objects.filter(is_staff=False).count()
+    total_fish = Fish.objects.count()
+    total_orders = Order.objects.count()
+    total_revenue = Order.objects.filter(status='delivered').aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # Get recent orders
+    recent_orders = Order.objects.order_by('-created_at')[:5]
+    
+    # Add status color to orders
+    for order in recent_orders:
+        if order.status == 'pending':
+            order.status_color = 'warning'
+        elif order.status == 'processing':
+            order.status_color = 'primary'
+        elif order.status == 'delivered':
+            order.status_color = 'success'
+        else:
+            order.status_color = 'danger'
+    
+    # Get recent activities
+    recent_activities = []
+    
+    # Recent user registrations
+    recent_users = User.objects.filter(is_staff=False).order_by('-date_joined')[:3]
+    for user in recent_users:
+        recent_activities.append({
+            'icon': '👤',
+            'title': f'New user {user.username} registered',
+            'time': timezone.localtime(user.date_joined).strftime('%H:%M')
+        })
+    
+    # Recent orders
+    for order in Order.objects.order_by('-created_at')[:2]:
+        recent_activities.append({
+            'icon': '📦',
+            'title': f'Order #{order.id} placed by {order.user.username}',
+            'time': timezone.localtime(order.created_at).strftime('%H:%M')
+        })
+    
+    # Sort by time
+    recent_activities.sort(key=lambda x: x['time'], reverse=True)
+    recent_activities = recent_activities[:5]
+    
+    context = {
+        'total_users': total_users,
+        'total_fish': total_fish,
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'recent_orders': recent_orders,
+        'recent_activities': recent_activities,
+    }
+    
+    return render(request, 'admin_dashboard.html', context)
 
 def logout_view(request):
     logout(request)
