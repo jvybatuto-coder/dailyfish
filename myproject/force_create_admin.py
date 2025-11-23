@@ -25,31 +25,31 @@ def force_create_admin():
         # Delete existing admin user if found
         existing_users = User.objects.filter(username=username)
         if existing_users.exists():
-            print(f"🗑️ Deleting existing admin user(s): {existing_users.count()} found")
+            print(f"Deleting existing admin user(s): {existing_users.count()} found")
             existing_users.delete()
         
         # Create new admin user
         user = User.objects.create_superuser(username=username, email=email, password=password)
         
-        print(f"✅ Admin user '{username}' created successfully!")
-        print(f"📋 Login details:")
+        print(f"Admin user '{username}' created successfully!")
+        print(f"Login details:")
         print(f"   Username: {username}")
         print(f"   Password: {password}")
         print(f"   Email: {email}")
-        print(f"🌐 Admin URL: https://your-app-name.onrender.com/admin/")
+        print(f"Admin URL: https://your-app-name.onrender.com/admin/")
         
         # Verify user can authenticate
         from django.contrib.auth import authenticate
         auth_user = authenticate(username=username, password=password)
         if auth_user:
-            print(f"✅ Authentication test passed!")
+            print(f"Authentication test passed!")
         else:
-            print(f"❌ Authentication test failed!")
+            print(f"Authentication test failed!")
             
         return True
         
     except Exception as e:
-        print(f"❌ Error creating admin: {str(e)}")
+        print(f"Error creating admin: {str(e)}")
         return False
 
 if __name__ == '__main__':
