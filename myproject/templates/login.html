@@ -489,17 +489,11 @@
             </div>
         </div>
         
-        <!-- Role Selection (only for signup) -->
+        <!-- Role Selection (only for signup) - Buyer only -->
         <div class="role-container" id="role-container" style="display: none;">
             <div class="role-option">
-                <input type="radio" id="seller-role" name="role" value="seller" style="display: none;">
-                <label for="seller-role" class="role-btn" id="seller-btn" onclick="selectRole('seller')" aria-label="Select Seller role">
-                    Seller
-                </label>
-            </div>
-            <div class="role-option">
-                <input type="radio" id="buyer-role" name="role" value="buyer" style="display: none;">
-                <label for="buyer-role" class="role-btn" id="buyer-btn" onclick="selectRole('buyer')" aria-label="Select Buyer role">
+                <input type="radio" id="buyer-role" name="role" value="buyer" style="display: none;" checked>
+                <label for="buyer-role" class="role-btn active" id="buyer-btn" aria-label="Buyer role (selected)">
                     Buyer
                 </label>
             </div>
@@ -544,25 +538,15 @@
             <form method="post" id="register-form" action="{% url 'register' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="role" id="register-role" value="">
-                <!-- Username: visible for buyers, hidden for sellers -->
+                <!-- Username for buyers -->
                 <div class="form-group" id="username-group">
                     <label for="register-username" class="form-label">Username</label>
-                    <input type="text" id="register-username" name="username" class="form-input" aria-label="Enter your username" placeholder="Enter your username">
+                    <input type="text" id="register-username" name="username" class="form-input" aria-label="Enter your username" placeholder="Enter your username" required>
                 </div>
-                <!-- Seller-only: Username -->
-                <div class="form-group seller-only" style="display:none;">
-                    <label for="register-seller-username" class="form-label">Username</label>
-                    <input type="text" id="register-seller-username" name="username" class="form-input" aria-label="Enter your username" placeholder="Enter your username" required>
-                </div>
-                <!-- Shared: Gmail Address -->
+                <!-- Gmail Address -->
                 <div class="form-group">
                     <label for="register-email" class="form-label">Gmail Address</label>
                     <input type="email" id="register-email" name="email" class="form-input" required aria-label="Enter your Gmail address" placeholder="@gmail.com">
-                </div>
-                <!-- Seller-only: Phone Number -->
-                <div class="form-group seller-only" style="display:none;">
-                    <label for="register-phone" class="form-label">Phone Number</label>
-                    <input type="text" id="register-phone" name="phone_number" class="form-input" aria-label="Enter your phone number" placeholder="Enter your phone number" required>
                 </div>
                 <!-- Shared: Password -->
                 <div class="form-group">
@@ -593,29 +577,21 @@
         let isAnimating = false;
 
         function selectRole(role) {
-            selectedRole = role;
-            document.getElementById('seller-btn').classList.toggle('active', role === 'seller');
-            document.getElementById('buyer-btn').classList.toggle('active', role === 'buyer');
-            // Update the register hidden input and the radio buttons
-            document.getElementById('register-role').value = role;
-            document.getElementById('seller-role').checked = (role === 'seller');
-            document.getElementById('buyer-role').checked = (role === 'buyer');
+            // Always set to buyer since only buyers can signup
+            selectedRole = 'buyer';
+            document.getElementById('register-role').value = 'buyer';
+            document.getElementById('buyer-role').checked = true;
 
-            // Toggle seller-only fields
+            // All fields are visible for buyers
             document.querySelectorAll('.seller-only').forEach(el => {
-                el.style.display = (role === 'seller') ? 'block' : 'none';
+                el.style.display = 'none';
             });
 
-            // Toggle username visibility/requirement
+            // Username field is always required for buyers
             const usernameGroup = document.getElementById('username-group');
             const usernameInput = document.getElementById('register-username');
-            if (role === 'seller') {
-                if (usernameGroup) usernameGroup.style.display = 'none';
-                if (usernameInput) usernameInput.required = false;
-            } else {
-                if (usernameGroup) usernameGroup.style.display = 'block';
-                if (usernameInput) usernameInput.required = true;
-            }
+            if (usernameGroup) usernameGroup.style.display = 'block';
+            if (usernameInput) usernameInput.required = true;
 
             updateSubmitButtons();
         }
@@ -658,10 +634,8 @@
                 const roleContainer = document.getElementById('role-container');
                 if (tab === 'signup') {
                     roleContainer.style.display = 'flex';
-                    // Auto-select first role if none selected when switching to signup
-                    if (!selectedRole) {
-                        selectRole('buyer');
-                    }
+                    // Auto-select buyer role for signup
+                    selectRole('buyer');
                 } else {
                     roleContainer.style.display = 'none';
                 }
@@ -706,28 +680,13 @@
             if (currentTab === 'signin') {
                 return isLoginValid();
             } else {
+                // Buyer signup validation
                 const username = document.getElementById('register-username').value.trim();
                 const email = document.getElementById('register-email').value.trim();
                 const password = document.getElementById('register-password').value.trim();
                 const confirmPassword = document.getElementById('register-confirm').value.trim();
-                if (!selectedRole || !email || !password || !confirmPassword || password !== confirmPassword) {
-                    return false;
-                }
-
-                // For buyers, require username only
-                if (selectedRole === 'buyer' && !username) {
-                    return false;
-                }
-
-                // For sellers, require seller username and phone number
-                if (selectedRole === 'seller') {
-                    const sellerUsername = document.getElementById('register-seller-username').value.trim();
-                    const phone = document.getElementById('register-phone').value.trim();
-                    if (!sellerUsername || !phone) {
-                        return false;
-                    }
-                }
-                return true;
+                
+                return username && email && password && confirmPassword && password === confirmPassword;
             }
         }
 
@@ -783,8 +742,14 @@
                 const preselectRole = '{{ preselect_role|default:"" }}'.trim();
                 if (preselectRole === 'seller' || preselectRole === 'buyer') {
                     selectRole(preselectRole);
+                } else {
+                    // Always default to buyer
+                    selectRole('buyer');
                 }
-            } catch (e) { }
+            } catch (e) {
+                // Always default to buyer
+                selectRole('buyer');
+            }
 
             // Add input listeners
             document.querySelectorAll('.form-input').forEach(input => {
@@ -836,10 +801,10 @@
                 // Get CSRF token from the form
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 
-                // Basic validation common to both roles
-                if (!selectedRole || !email || !password || !confirm) {
+                // Basic validation for buyer signup
+                if (!username || !email || !password || !confirm) {
                     e.preventDefault();
-                    showError('Please fill in all required fields and select a role.');
+                    showError('Please fill in all required fields.');
                     return false;
                 }
 
